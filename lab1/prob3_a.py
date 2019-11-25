@@ -36,13 +36,19 @@ class Town:
     # world width
     WIDTH = 4
 
+    # Size of the world
+    SIZE = HEIGHT * WIDTH
+
+    # The location of the bank
+    BANK = (1, 1)
+
 
 class Action(Enum):
-    UP = 'U'
-    DOWN = 'D'
-    LEFT = 'L'
-    RIGHT = 'R'
-    STAND = 'S'
+    STAND = 0
+    UP = 1
+    DOWN = 2
+    LEFT = 3
+    RIGHT = 4
 
 
 def step(state, action):
@@ -70,28 +76,63 @@ def step(state, action):
     else:
         raise ValueError("Action for stepping is not valid")
 
-    # ----------------------------------------
-    # consider the reward
-    # ----------------------------------------
-    reward = 0
-    # if (action == ACTION_DOWN and i == 2 and 1 <= j <= 10) or (
-    #         action == ACTION_RIGHT and state == START):
-    #     reward = -100
-    #     next_state = START
-
-    return next_state, reward
+    return next_state
 
 
-def police_policy():
-    pass
+def reward(rob_state, police_state):
+    if rob_state == police_state:
+        ret = -10
+    elif rob_state == Town.BANK:
+        ret = 1
+    else:
+        ret = 0
+    return ret
 
 
-def rob_policy():
-    pass
+def police_policy(state):
+    # employ random policy
+    action = np.random.choice(list(Action))
+    return action
+
+
+def rob_policy(state):
+    # employ random policy
+    action = np.random.choice(list(Action))
+    return action
+
+
+def state_to_idx(state):
+    """
+    Map state tuple to index
+
+    Example:
+    >> state_to_idx((2,3))
+    11
+    >> idx_to_state(11)
+    (2, 3)
+    """
+    ret = np.ravel_multi_index(state, dims=(Town.HEIGHT, Town.WIDTH))
+    return ret
+
+
+def idx_to_state(idx):
+    ret = np.unravel_index(idx, shape=(Town.HEIGHT, Town.WIDTH))
+    return ret
 
 
 if __name__ == "__main__":
     num_actions = len(Action)
-    num_states = 16
-    # q_fun.shape = rob state, police state, action
+    num_states = Town.SIZE
+    n_iters = 1000
+    discount = 0.8  # the lambda coeff
+
+    # q_fun.shape = (rob state, police state, action)
+    # init. with zeros
     q_fun = np.zeros((num_states, num_states, num_actions))
+    n_visits = np.zeros((num_states, num_states))
+
+    police_state = (4, 4)
+    rob_state = (0, 0)
+
+    for i in range(n_iters):
+        pass
