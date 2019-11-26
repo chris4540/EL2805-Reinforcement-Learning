@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Style and ref:
     <book_code>/chapter06/cliff_walking.py
@@ -22,10 +23,18 @@ a) Solve the problem by implementing the Q-learning algorithm exploring actions 
    updates of Q(s, a))
 """
 from enum import IntEnum
+from enum import Enum
 import numpy as np
 from tqdm import tqdm
 from tqdm import trange
 from utils.csvlogger import CustomizedCSVLogger as CSVLogger
+from argparse import ArgumentParser
+from argparse import ArgumentDefaultsHelpFormatter
+
+
+class Algorithm(Enum):
+    q_learn = 'Q_learn'
+    sarsa = 'SARSA'
 
 
 class Town:
@@ -97,16 +106,35 @@ def get_reward(rob_state, police_state):
     return ret
 
 
-def random_policy(state):
+def random_policy(state=None):
     # employ random policy
     action = np.random.choice(list(Action))
     return action
 
 
-# def rob_policy(state):
-#     # employ random policy
-#     action = np.random.choice(list(Action))
-#     return action
+def eps_greedy_policy(rob_state, police_state, q_fun, eps=0.1):
+    """
+    Perform the ε-greedy policy to map a state to an action
+
+    Args:
+        rob_state (tuple[idx]): The rob state
+        police_state (tuple[idx]): The police state
+        q_fun (np.ndarry): The current estimation of the q-function
+                           (i.e. the state-action value function)
+        eps (float): The prob. of chossing randomized action in this policy
+
+    """
+
+    if np.random.binomial(1, eps) == 1:
+        # Prob(take randomize policy)
+        return random_policy()
+    else:
+        # Map their state to index
+        r_i = state_to_idx(rob_state)
+        p_i = state_to_idx(police_state)
+        action_idx = np.argmax(q_fun[r_i, p_i, :])
+        action = Action(action_idx)
+        return action
 
 
 def state_to_idx(state):
@@ -134,13 +162,33 @@ def get_lr(n_visit):
 
 
 if __name__ == "__main__":
+    # parser
+    parser = ArgumentParser(description='Lab 3 run script',
+                            formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--eps', default=0.1, type=float,
+                        help="The ε in ε-greedy policy.")
+    parser.add_argument('--algo', type=str, choices=[a.value for a in Algorithm],
+                        required=True, help="The name of algorithm")
+    args = parser.parse_args()
+
+    # Config
     num_actions = len(Action)
     num_states = Town.SIZE
     n_iters = int(1E7)
     discount = 0.8  # the lambda coeff
-    log_freq = n_iters // 1000
-
-    logger = CSVLogger('prob3a.csv')
+    log_freq = n_iters // 10000
+    eps = args.eps  # the ε in ε-greedy policy
+    algo = Algorithm(args.algo)
+    print("---------------------------------------")
+    print("ε value in ε-greedy policy = ", eps)
+    print("Algorithm = ", algo.value)
+    print("---------------------------------------")
+    # -------------------------------------
+    if algo == Algorithm.q_learn:
+        csv_fname = algo.value
+    else:
+        csv_fname = "{}-eps-{:.0E}".format(algo.value, eps)
+    logger = CSVLogger(csv_fname)
 
     # q_fun.shape = (rob state, police state, action)
     # init. with zeros
@@ -162,8 +210,13 @@ if __name__ == "__main__":
     pbar = trange(n_iters)
     for t in pbar:
         # Make an action according to the policy
-        police_act = random_policy(police_state)
-        rob_act = random_policy(rob_state)
+        police_act = random_policy()
+        if algo == Algorithm.sarsa:
+            rob_act = eps_greedy_policy(
+                rob_state, police_state, q_fun, eps=0.1)
+        else:
+            # q-learning
+            rob_act = random_policy()
 
         # Make a move according to the action (s_{t+1})
         new_police_state = step(police_state, police_act)
