@@ -199,9 +199,6 @@ if __name__ == "__main__":
         police_state = new_police_state
         rob_state = new_rob_state
 
-        # logging and display
-        pbar.desc = pbar_desc.format(v_fun_0, sqsum_delta_q)
-
         if t % log_freq == 0:
             sqsum_delta_q = np.sum((q_fun - q_fun_ref)**2)
             pbar.desc = pbar_desc.format(v_fun_0, sqsum_delta_q)
