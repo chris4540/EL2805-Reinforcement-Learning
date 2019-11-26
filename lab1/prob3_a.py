@@ -1,5 +1,5 @@
 """
-Style:
+Style and ref:
     <book_code>/chapter06/cliff_walking.py
     https://git.io/JePKr
 """
@@ -9,7 +9,7 @@ A  .  .  .  .
 .  B  .  .  .
 .  .  .  .  .
 .  .  .  .  .
-The player (us) starts at (0, 0) and the police starts at (4, 4)
+The player (us) starts at (0, 0) and the police starts at (3, 3)
 The reward for each round (staying or moving?) in the bank results in a reward of +1
 The reward for getting caught by the police results in a reward of -10
 (Same cell as the police)
@@ -21,8 +21,10 @@ a) Solve the problem by implementing the Q-learning algorithm exploring actions 
    after roughly 10 000 000 iterations (for step size 1/n(s, a) 2/3 , where n(s, a) is the number of
    updates of Q(s, a))
 """
-from enum import Enum
+from enum import IntEnum
 import numpy as np
+from tqdm import tqdm
+from tqdm import trange
 
 
 class Town:
@@ -43,12 +45,17 @@ class Town:
     BANK = (1, 1)
 
 
-class Action(Enum):
+class Action(IntEnum):
     STAND = 0
     UP = 1
     DOWN = 2
     LEFT = 3
     RIGHT = 4
+
+
+class InitialCond:
+    police_state = (3, 3)
+    rob_state = (0, 0)
 
 
 def step(state, action):
@@ -79,7 +86,7 @@ def step(state, action):
     return next_state
 
 
-def reward(rob_state, police_state):
+def get_reward(rob_state, police_state):
     if rob_state == police_state:
         ret = -10
     elif rob_state == Town.BANK:
@@ -89,16 +96,16 @@ def reward(rob_state, police_state):
     return ret
 
 
-def police_policy(state):
+def random_policy(state):
     # employ random policy
     action = np.random.choice(list(Action))
     return action
 
 
-def rob_policy(state):
-    # employ random policy
-    action = np.random.choice(list(Action))
-    return action
+# def rob_policy(state):
+#     # employ random policy
+#     action = np.random.choice(list(Action))
+#     return action
 
 
 def state_to_idx(state):
@@ -120,19 +127,78 @@ def idx_to_state(idx):
     return ret
 
 
+def get_lr(n_visit):
+    lr = (1. / n_visit) ** (0.66667)  # 2 / 3 = 0.66667
+    return lr
+
+
 if __name__ == "__main__":
     num_actions = len(Action)
     num_states = Town.SIZE
-    n_iters = 1000
+    # n_iters = int(1E7)
+    n_iters = int(1E6)
     discount = 0.8  # the lambda coeff
+    log_freq = 1000
 
     # q_fun.shape = (rob state, police state, action)
     # init. with zeros
     q_fun = np.zeros((num_states, num_states, num_actions))
-    n_visits = np.zeros((num_states, num_states))
+    n_visits = np.zeros((num_states, num_states, num_actions))
 
-    police_state = (4, 4)
-    rob_state = (0, 0)
+    # initial condition
+    rob_state = InitialCond.rob_state
+    police_state = InitialCond.police_state
 
-    for i in range(n_iters):
-        pass
+    init_r_i = state_to_idx(rob_state)
+    init_p_i = state_to_idx(police_state)
+    print(init_r_i, init_p_i)
+
+    q_fun_ref = np.array(q_fun)
+    sqsum_delta_q = 0
+
+    pbar_desc = "ITERATION - v_fun_0: {:.2f}; sqsum(q - q'): {:.2f}"
+    pbar = trange(n_iters)
+    for t in pbar:
+        # Make an action according to the policy
+        police_act = random_policy(police_state)
+        rob_act = random_policy(rob_state)
+
+        # Make a move according to the action (s_{t+1})
+        new_police_state = step(police_state, police_act)
+        new_rob_state = step(rob_state, rob_act)
+        new_r_i = state_to_idx(new_rob_state)
+        new_p_i = state_to_idx(new_police_state)
+
+        # Mark down n_visits
+        r_i = state_to_idx(rob_state)
+        p_i = state_to_idx(police_state)
+        n_visits[r_i, p_i, rob_act] += 1
+        n_visit = n_visits[r_i, p_i, rob_act]
+
+        # calculate reward
+        reward = get_reward(new_rob_state, new_police_state)
+
+        # calculate learning rate
+        alpha = get_lr(n_visit)
+
+        # update
+        update = reward
+        # consider the discounted future
+        update += (discount * np.max(q_fun[new_r_i, new_p_i, :]))
+        update += -q_fun[r_i, p_i, rob_act]
+
+        delta_q = alpha * update
+        q_fun[r_i, p_i, rob_act] += delta_q
+
+        # Calculate the value function at begining point
+        v_fun_0 = np.max(q_fun[init_r_i, init_p_i, :])
+
+        # replace the state
+        police_state = new_police_state
+        rob_state = new_rob_state
+
+        pbar.desc = pbar_desc.format(v_fun_0, sqsum_delta_q)
+        if t % log_freq == 0:
+            sqsum_delta_q = np.sum((q_fun - q_fun_ref)**2)
+            pbar.desc = pbar_desc.format(v_fun_0, sqsum_delta_q)
+            q_fun_ref = np.array(q_fun)
