@@ -185,9 +185,9 @@ if __name__ == "__main__":
     print("---------------------------------------")
     # -------------------------------------
     if algo == Algorithm.q_learn:
-        csv_fname = algo.value
+        csv_fname = "{}.csv".format(algo.value)
     else:
-        csv_fname = "{}-eps-{:.0E}".format(algo.value, eps)
+        csv_fname = "{}-eps-{:.0E}.csv".format(algo.value, eps)
     logger = CSVLogger(csv_fname)
 
     # q_fun.shape = (rob state, police state, action)
