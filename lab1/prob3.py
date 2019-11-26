@@ -136,10 +136,9 @@ def get_lr(n_visit):
 if __name__ == "__main__":
     num_actions = len(Action)
     num_states = Town.SIZE
-    # n_iters = int(1E7)
-    n_iters = int(1E6)
+    n_iters = int(1E7)
     discount = 0.8  # the lambda coeff
-    log_freq = 10000
+    log_freq = n_iters // 1000
 
     logger = CSVLogger('prob3a.csv')
 
@@ -154,8 +153,8 @@ if __name__ == "__main__":
 
     init_r_i = state_to_idx(rob_state)
     init_p_i = state_to_idx(police_state)
-    print(init_r_i, init_p_i)
 
+    #
     q_fun_ref = np.array(q_fun)
     sqsum_delta_q = 0
 
@@ -207,5 +206,5 @@ if __name__ == "__main__":
             sqsum_delta_q = np.sum((q_fun - q_fun_ref)**2)
             pbar.desc = pbar_desc.format(v_fun_0, sqsum_delta_q)
             q_fun_ref = np.array(q_fun)
-            logger.log(v_fun_0=v_fun_0, delta_q=delta_q,
+            logger.log(iter=t, v_fun_0=v_fun_0, delta_q=delta_q,
                        sqsum_q_q_pi=sqsum_delta_q)

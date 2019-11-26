@@ -32,7 +32,7 @@ class CustomizedCSVLogger:
             mode = 'w'
 
         with open(self.filename, mode) as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=self.headers)
+            writer = csv.DictWriter(csvfile, fieldnames=self.headers, lineterminator='\n')
 
             if not self._header_written:
                 writer.writeheader()
