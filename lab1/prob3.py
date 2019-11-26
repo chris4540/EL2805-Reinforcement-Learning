@@ -25,6 +25,7 @@ from enum import IntEnum
 import numpy as np
 from tqdm import tqdm
 from tqdm import trange
+from utils.csvlogger import CustomizedCSVLogger as CSVLogger
 
 
 class Town:
@@ -138,7 +139,9 @@ if __name__ == "__main__":
     # n_iters = int(1E7)
     n_iters = int(1E6)
     discount = 0.8  # the lambda coeff
-    log_freq = 1000
+    log_freq = 10000
+
+    logger = CSVLogger('prob3a.csv')
 
     # q_fun.shape = (rob state, police state, action)
     # init. with zeros
@@ -197,8 +200,12 @@ if __name__ == "__main__":
         police_state = new_police_state
         rob_state = new_rob_state
 
+        # logging and display
         pbar.desc = pbar_desc.format(v_fun_0, sqsum_delta_q)
+
         if t % log_freq == 0:
             sqsum_delta_q = np.sum((q_fun - q_fun_ref)**2)
             pbar.desc = pbar_desc.format(v_fun_0, sqsum_delta_q)
             q_fun_ref = np.array(q_fun)
+            logger.log(v_fun_0=v_fun_0, delta_q=delta_q,
+                       sqsum_q_q_pi=sqsum_delta_q)
