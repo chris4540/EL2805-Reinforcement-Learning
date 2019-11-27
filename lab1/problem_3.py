@@ -30,6 +30,7 @@ from tqdm import trange
 from utils.csvlogger import CustomizedCSVLogger as CSVLogger
 from argparse import ArgumentParser
 from argparse import ArgumentDefaultsHelpFormatter
+from pathlib import Path
 
 
 class Algorithm(Enum):
@@ -169,6 +170,8 @@ if __name__ == "__main__":
                         help="The ε in ε-greedy policy.")
     parser.add_argument('--algo', type=str, choices=[a.value for a in Algorithm],
                         required=True, help="The name of algorithm")
+    parser.add_argument('--outfolder', default=str(Path('./')),
+                        help="The name of algorithm")
     args = parser.parse_args()
 
     # Config
@@ -176,11 +179,14 @@ if __name__ == "__main__":
     num_states = Town.SIZE
     n_iters = int(1E7)
     discount = 0.8  # the lambda coeff
-    log_freq = n_iters // 10000
+    log_freq = 10000
     eps = args.eps  # the ε in ε-greedy policy
     algo = Algorithm(args.algo)
+    outfolder = Path(args.outfolder)
     print("---------------------------------------")
-    print("ε value in ε-greedy policy = ", eps)
+    print("Output folder = ", args.outfolder)
+    if algo == Algorithm.sarsa:
+        print("ε value in ε-greedy policy = ", eps)
     print("Algorithm = ", algo.value)
     print("---------------------------------------")
     # -------------------------------------
@@ -188,7 +194,7 @@ if __name__ == "__main__":
         csv_fname = "{}.csv".format(algo.value)
     else:
         csv_fname = "{}-eps-{:.0E}.csv".format(algo.value, eps)
-    logger = CSVLogger(csv_fname)
+    logger = CSVLogger(outfolder / csv_fname)
 
     # q_fun.shape = (rob state, police state, action)
     # init. with zeros
@@ -202,11 +208,12 @@ if __name__ == "__main__":
     init_r_i = state_to_idx(rob_state)
     init_p_i = state_to_idx(police_state)
 
-    #
+    # For logging
     q_fun_ref = np.array(q_fun)
     sqsum_delta_q = 0
+    acc_reward = 0  # accumulate rewards
 
-    pbar_desc = "ITERATION - v_fun_0: {:.2f}; sqsum(q - q'): {:.2f}"
+    pbar_desc = "ITERATION - V_0: {:.2f}; (q - q')**2: {:.2f}; reward: {:.2f};"
     pbar = trange(n_iters)
     for t in pbar:
         # Make an action according to the policy
@@ -232,6 +239,7 @@ if __name__ == "__main__":
 
         # calculate reward
         reward = get_reward(new_rob_state, new_police_state)
+        acc_reward += reward
 
         # calculate learning rate
         alpha = get_lr(n_visit)
@@ -254,7 +262,7 @@ if __name__ == "__main__":
 
         if t % log_freq == 0:
             sqsum_delta_q = np.sum((q_fun - q_fun_ref)**2)
-            pbar.desc = pbar_desc.format(v_fun_0, sqsum_delta_q)
+            pbar.desc = pbar_desc.format(v_fun_0, sqsum_delta_q, acc_reward)
             q_fun_ref = np.array(q_fun)
             logger.log(iter=t, v_fun_0=v_fun_0, delta_q=delta_q,
-                       sqsum_q_q_pi=sqsum_delta_q)
+                       sqsum_q_q_pi=sqsum_delta_q, acc_reward=acc_reward)
