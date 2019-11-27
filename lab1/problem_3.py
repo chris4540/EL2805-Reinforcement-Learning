@@ -213,7 +213,7 @@ if __name__ == "__main__":
     sqsum_delta_q = 0
     acc_reward = 0  # accumulate rewards
 
-    pbar_desc = "ITERATION - V_0: {:.2f}; (q - q')**2: {:.2f}; reward: {:.2f};"
+    pbar_desc = "ITERATION - V_0: {:.2f}; (q - q')**2: {:.2f}; reward: {:d};"
     pbar = trange(n_iters)
     for t in pbar:
         # Make an action according to the policy
