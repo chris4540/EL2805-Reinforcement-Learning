@@ -21,6 +21,11 @@ a) Solve the problem by implementing the Q-learning algorithm exploring actions 
    showing the convergence of the algorithm. Note: Expect the value function to converge
    after roughly 10 000 000 iterations (for step size 1/n(s, a) 2/3 , where n(s, a) is the number of
    updates of Q(s, a))
+
+b) Solve the problem by implementing the SARSA algorithm using
+   ε-greedy exploration (initially ε = 0.1).
+   Show the convergence for different values of ε.
+   Notes ε -> 0 s.t. the algorithm converge
 """
 from enum import IntEnum
 from enum import Enum
@@ -97,10 +102,16 @@ def step(state, action):
     return next_state
 
 
-def get_reward(rob_state, police_state):
-    if rob_state == police_state:
+def get_reward(rob_state_next, police_state_next):
+    """
+    Notes:
+        if calculate the reward at time t, you need to input the state S_{t+1}
+    Example:
+        reward = get_reward(rob_state_next, police_state_next)
+    """
+    if rob_state_next == police_state_next:
         ret = -10
-    elif rob_state == Town.BANK:
+    elif rob_state_next == Town.BANK:
         ret = 1
     else:
         ret = 0
@@ -214,10 +225,9 @@ if __name__ == "__main__":
 
     # For logging
     q_fun_ref = np.array(q_fun)
-    sqsum_delta_q = 0
     acc_reward = 0  # accumulate rewards
 
-    pbar_desc = "ITERATION - V_0: {:.2f}; (q - q')**2: {:.2f}; reward: {:d};"
+    pbar_desc = "ITERATION - V_0: {:.2f}; L2(q-q'): {:.2f}; reward: {:d};"
     pbar = trange(n_iters)
     for t in pbar:
         # Notes:
@@ -234,20 +244,21 @@ if __name__ == "__main__":
         n_visits[r_si, p_si, rob_act] += 1
         n_visit = n_visits[r_si, p_si, rob_act]
 
-        # collect the reward when we have s_t; a_t
-        reward = get_reward(rob_state, police_state)
+        # Make a move according to the action (s_{t+1})
+        police_state_next = step(police_state, police_act)
+        rob_state_next = step(rob_state, rob_act)
+        r_si_next = state_to_idx(rob_state_next)
+        p_si_next = state_to_idx(police_state_next)
+
+        # collect the reward when we have s_t; a_t (i.e. s_{t+1})
+        reward = get_reward(rob_state_next, police_state_next)
         acc_reward += reward
 
-        # Make a move according to the action (s_{t+1})
-        next_police_state = step(police_state, police_act)
-        next_rob_state = step(rob_state, rob_act)
-        r_si_next = state_to_idx(next_rob_state)
-        p_si_next = state_to_idx(next_police_state)
         # Make a next action (a_{t+1}) according to the policy (and algorithm)
         next_police_act = random_policy()
         if algo == Algorithm.sarsa:
             next_rob_act = eps_greedy_policy(
-                next_rob_state, next_police_state, q_fun, eps=eps)
+                rob_state_next, police_state_next, q_fun, eps=eps)
         else:
             # q-learning
             next_rob_act = random_policy()
@@ -272,8 +283,8 @@ if __name__ == "__main__":
         q_fun[r_si, p_si, rob_act] += delta_q
 
         # replace the state (t -> t+1)
-        police_state = next_police_state
-        rob_state = next_rob_state
+        police_state = police_state_next
+        rob_state = rob_state_next
         # replace the action
         rob_act = next_rob_act
         police_act = next_police_act
@@ -281,8 +292,8 @@ if __name__ == "__main__":
         if t % log_freq == 0:
             # Calculate the value function at begining point
             v_fun_0 = np.max(q_fun[init_r_i, init_p_i, :])
-            sqsum_delta_q = np.sum((q_fun - q_fun_ref)**2)
-            pbar.desc = pbar_desc.format(v_fun_0, sqsum_delta_q, acc_reward)
+            norm_delta_q = np.sqrt(np.sum((q_fun - q_fun_ref)**2))
+            pbar.desc = pbar_desc.format(v_fun_0, norm_delta_q, acc_reward)
             q_fun_ref = np.array(q_fun)
             logger.log(iter=t, v_fun_0=v_fun_0, delta_q=delta_q,
-                       sqsum_q_q_pi=sqsum_delta_q, acc_reward=acc_reward)
+                       norm_delta_q=norm_delta_q, acc_reward=acc_reward)
