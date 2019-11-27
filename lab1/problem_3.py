@@ -220,7 +220,7 @@ if __name__ == "__main__":
         police_act = random_policy()
         if algo == Algorithm.sarsa:
             rob_act = eps_greedy_policy(
-                rob_state, police_state, q_fun, eps=0.1)
+                rob_state, police_state, q_fun, eps=eps)
         else:
             # q-learning
             rob_act = random_policy()
