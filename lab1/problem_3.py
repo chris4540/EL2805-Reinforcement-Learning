@@ -220,54 +220,67 @@ if __name__ == "__main__":
     pbar_desc = "ITERATION - V_0: {:.2f}; (q - q')**2: {:.2f}; reward: {:d};"
     pbar = trange(n_iters)
     for t in pbar:
-        # Make an action according to the policy
-        new_police_act = random_policy()
-        if algo == Algorithm.sarsa:
-            new_rob_act = eps_greedy_policy(
-                rob_state, police_state, q_fun, eps=eps)
-        else:
-            # q-learning
-            new_rob_act = random_policy()
-
-        # Make a move according to the action (s_{t+1})
-        new_police_state = step(police_state, police_act)
-        new_rob_state = step(rob_state, rob_act)
-        new_r_i = state_to_idx(new_rob_state)
-        new_p_i = state_to_idx(new_police_state)
-
+        # Notes:
+        #   At time t,
+        #   Q-learning need to know:
+        #       (s_t; a_t; r_t; s_{t+1})
+        #   SARSA need to know:
+        #       (s_t; a_t; r_t; s_{t+1}; a_{t+1})
+        #   To make it simple, we did both
+        # ------------------------------------------------
         # Mark down n_visits
-        r_i = state_to_idx(rob_state)
-        p_i = state_to_idx(police_state)
-        n_visits[r_i, p_i, rob_act] += 1
-        n_visit = n_visits[r_i, p_i, rob_act]
+        r_si = state_to_idx(rob_state)
+        p_si = state_to_idx(police_state)
+        n_visits[r_si, p_si, rob_act] += 1
+        n_visit = n_visits[r_si, p_si, rob_act]
 
-        # calculate reward
-        reward = get_reward(new_rob_state, new_police_state)
+        # collect the reward when we have s_t; a_t
+        reward = get_reward(rob_state, police_state)
         acc_reward += reward
 
+        # Make a move according to the action (s_{t+1})
+        next_police_state = step(police_state, police_act)
+        next_rob_state = step(rob_state, rob_act)
+        r_si_next = state_to_idx(next_rob_state)
+        p_si_next = state_to_idx(next_police_state)
+        # Make a next action (a_{t+1}) according to the policy (and algorithm)
+        next_police_act = random_policy()
+        if algo == Algorithm.sarsa:
+            next_rob_act = eps_greedy_policy(
+                next_rob_state, next_police_state, q_fun, eps=eps)
+        else:
+            # q-learning
+            next_rob_act = random_policy()
+        # ----------------------------------------------------------
         # calculate learning rate
         alpha = get_lr(n_visit)
 
+        # -----------------------
         # update
+        # -----------------------
+        # calculate update
         update = reward
-        # consider the discounted future
+        # consider the discounted future state-value function
         if algo == Algorithm.sarsa:
-            update += (discount * q_fun[new_r_i, new_p_i, :])
+            update += (discount * q_fun[r_si_next, p_si_next, next_rob_act])
         else:
-            update += (discount * np.max(q_fun[new_r_i, new_p_i, :]))
-        update += -q_fun[r_i, p_i, rob_act]
+            update += (discount * np.max(q_fun[r_si_next, p_si_next, :]))
+        update += -q_fun[r_si, p_si, rob_act]
 
+        # apply update
         delta_q = alpha * update
-        q_fun[r_i, p_i, rob_act] += delta_q
+        q_fun[r_si, p_si, rob_act] += delta_q
 
-        # Calculate the value function at begining point
-        v_fun_0 = np.max(q_fun[init_r_i, init_p_i, :])
-
-        # replace the state
-        police_state = new_police_state
-        rob_state = new_rob_state
+        # replace the state (t -> t+1)
+        police_state = next_police_state
+        rob_state = next_rob_state
+        # replace the action
+        rob_act = next_rob_act
+        police_act = next_police_act
 
         if t % log_freq == 0:
+            # Calculate the value function at begining point
+            v_fun_0 = np.max(q_fun[init_r_i, init_p_i, :])
             sqsum_delta_q = np.sum((q_fun - q_fun_ref)**2)
             pbar.desc = pbar_desc.format(v_fun_0, sqsum_delta_q, acc_reward)
             q_fun_ref = np.array(q_fun)
