@@ -201,9 +201,13 @@ if __name__ == "__main__":
     q_fun = np.zeros((num_states, num_states, num_actions))
     n_visits = np.zeros((num_states, num_states, num_actions))
 
+    # ------------------------------------------
     # initial condition
     rob_state = InitialCond.rob_state
     police_state = InitialCond.police_state
+    rob_act = random_policy()
+    police_act = random_policy()
+    # ------------------------------------------
 
     init_r_i = state_to_idx(rob_state)
     init_p_i = state_to_idx(police_state)
@@ -217,13 +221,13 @@ if __name__ == "__main__":
     pbar = trange(n_iters)
     for t in pbar:
         # Make an action according to the policy
-        police_act = random_policy()
+        new_police_act = random_policy()
         if algo == Algorithm.sarsa:
-            rob_act = eps_greedy_policy(
+            new_rob_act = eps_greedy_policy(
                 rob_state, police_state, q_fun, eps=eps)
         else:
             # q-learning
-            rob_act = random_policy()
+            new_rob_act = random_policy()
 
         # Make a move according to the action (s_{t+1})
         new_police_state = step(police_state, police_act)
@@ -247,7 +251,10 @@ if __name__ == "__main__":
         # update
         update = reward
         # consider the discounted future
-        update += (discount * np.max(q_fun[new_r_i, new_p_i, :]))
+        if algo == Algorithm.sarsa:
+            update += (discount * q_fun[new_r_i, new_p_i, :])
+        else:
+            update += (discount * np.max(q_fun[new_r_i, new_p_i, :]))
         update += -q_fun[r_i, p_i, rob_act]
 
         delta_q = alpha * update
