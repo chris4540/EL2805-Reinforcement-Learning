@@ -87,27 +87,40 @@ def adjacent_states(maze, has_still):
     return adj_states
 
 
-# def get_reward(per_state, mino_state):
-#     if (per_state == Maze.EXITIDX) and (mino_state != Maze.EXITIDX):
-#         ret = 10
-#     elif per_state == mino_state:
-#         ret = 0
-#     else:
-#         ret = -1
-#     return ret
+def get_reward(per_state, mino_state, maze):
+    # per_pos = idx_to_state(per_state)
+    if (per_state == Maze.EXITIDX) and (mino_state != Maze.EXITIDX):
+        ret = 10
+    elif per_state == mino_state:
+        ret = -1
+    # elif maze[per_pos[0]+1,per_pos[1]+1]==0 :
+    #     ret = -10
+    else:
+        ret = 0
+    return ret
 
 # valfun: mino_state * per_state * T
 def init_valfun(T):
-    v_fun = -np.ones((Maze.SIZE,Maze.SIZE,T))
-    v_fun[:,:,T-1] = 0
-    v_fun[:, Maze.EXITIDX, T-1] = 1
-    v_fun[Maze.EXITIDX, Maze.EXITIDX,T-1] = 0
-    for wall in Maze.WALL:
-        idx = state_to_idx(wall)
-        v_fun[idx,:,T-1] = -1
+    if T > 1:
+        v_fun = -np.ones((Maze.SIZE,Maze.SIZE,T))
+        v_fun[:,:,T-1] = 0
+        v_fun[:, Maze.EXITIDX, T-1] = 1
+        v_fun[Maze.EXITIDX, Maze.EXITIDX,T-1] = 0
+        for wall in Maze.WALL:
+            idx = state_to_idx(wall)
+            v_fun[idx,:,T-1] = -1
+    elif T == 1:
+        v_fun = np.zeros((Maze.SIZE,Maze.SIZE))
+        v_fun[:, Maze.EXITIDX] = 1
+        v_fun[Maze.EXITIDX, Maze.EXITIDX] = 0
+        for wall in Maze.WALL:
+            idx = state_to_idx(wall)
+            v_fun[idx,:] = -1
+    else:
+        raise TypeError('Wrong range: T < 1!')
     return v_fun
 
-def value_iteration(T, init_per, init_mino, per_adj_states, mino_adj_states):
+def dynamic_programming(T, init_per, init_mino, per_adj_states, mino_adj_states):
     v_fun = init_valfun(T)
     opt_actions = -np.ones((Maze.SIZE, Maze.SIZE, T),dtype=int)
     for t in np.arange(T-1,0,-1):
@@ -141,6 +154,40 @@ def value_iteration(T, init_per, init_mino, per_adj_states, mino_adj_states):
                 v_fun[mino_state, per_state, t-1] = update_v
     return v_fun, opt_actions
 
+def value_iteration(gamma, epsilon, iter_num, person_adj_states, mino_adj_states, maze):
+    q_fun = np.zeros((Maze.SIZE, Maze.SIZE, len(Action)))
+    v_fun = init_valfun(1)
+    vb_fun = np.zeros((Maze.SIZE, Maze.SIZE))
+    opt_policy = np.zeros((Maze.SIZE, Maze.SIZE), dtype=int)
+    t = 0
+    diff = np.linalg.norm(v_fun - vb_fun)
+    while diff > epsilon and t < iter_num:
+        vb_fun = np.copy(v_fun)
+        for m in range(Maze.SIZE):
+            for p in range(Maze.SIZE):
+                if not per_adj_states[p]:
+                    continue
+                for act in Action:
+                    next_per_state = person_adj_states[p][act]
+                    if next_per_state is None:
+                        continue
+                    reward = get_reward(next_per_state, m, maze)
+                    v_sum = 0
+                    count = 0
+                    for next_mino_state in mino_adj_states[m]:
+                        if next_mino_state is None:
+                            continue
+                        v_sum += vb_fun[next_mino_state, next_per_state]
+                        count += 1
+                    v_sum = v_sum / count
+                    q_fun[m,p,act] = reward + gamma * v_sum
+        v_fun = np.max(q_fun,-1)
+        t += 1
+        diff = np.linalg.norm(v_fun - vb_fun)
+        #print(diff)
+    opt_policy = np.argmax(q_fun,-1)
+    return v_fun, opt_policy
+
 def optimal_policy(opt_actions,T,init_per,init_mino,mino_adj_states,per_adj_states):
     person_states = [init_per]
     mino_states = [init_mino]
@@ -148,6 +195,29 @@ def optimal_policy(opt_actions,T,init_per,init_mino,mino_adj_states,per_adj_stat
     cur_mino_state = init_mino
     for t in range(T):
         opt_act = opt_actions[cur_mino_state,cur_per_state,t]
+        next_per_state = per_adj_states[cur_per_state][opt_act]
+        person_states.append(next_per_state)
+
+        if next_per_state == Maze.EXITIDX:
+            break
+
+        next_mino_state = np.random.choice(mino_adj_states[cur_mino_state])
+        while next_mino_state is None:
+            next_mino_state = np.random.choice(mino_adj_states[cur_mino_state])
+        mino_states.append(next_mino_state)
+
+        cur_per_state = next_per_state
+        cur_mino_state = next_mino_state
+
+    return person_states, mino_states
+
+def simulate(opt_actions,init_per,init_mino,mino_adj_states,per_adj_states):
+    person_states = [init_per]
+    mino_states = [init_mino]
+    cur_per_state = init_per
+    cur_mino_state = init_mino
+    while (cur_per_state != Maze.EXITIDX) and (cur_per_state != cur_mino_state):
+        opt_act = opt_actions[cur_mino_state,cur_per_state]
         next_per_state = per_adj_states[cur_per_state][opt_act]
         person_states.append(next_per_state)
 
@@ -173,7 +243,7 @@ if __name__ == "__main__":
     maze_mino = init_maze([])
     init_per = state_to_idx(Maze.PerInit)
     init_mino = state_to_idx(Maze.MinoInit)
-    mino_has_still = True # control minotaur actions
+    mino_has_still = False # control minotaur actions
 
     per_adj_states = adjacent_states(maze_per, True)
     mino_adj_states = adjacent_states(maze_mino, mino_has_still)
@@ -182,10 +252,31 @@ if __name__ == "__main__":
         if per_adj_states[Maze.EXITIDX][i] is not None:
             per_adj_states[Maze.EXITIDX][i] = Maze.EXITIDX
 
-    # value iteration
-    v_fun, opt_actions = value_iteration(T,init_per,init_mino,per_adj_states,mino_adj_states)
+    # bellman dynamic programming
+    v_fun, opt_actions = dynamic_programming(T,init_per,init_mino,per_adj_states,mino_adj_states)
 
     # generate an optimal policy
     person_states, mino_states = optimal_policy(opt_actions,T,init_per,init_mino,mino_adj_states,per_adj_states)
-    print("person states: " + person_states)
-    print("mino states: " + mino_states)
+    print("person states: ")
+    print(person_states)
+    print("mino states: ")
+    print(mino_states)
+
+    # T~Geo(30)
+    gamma = 0.97
+    eps = 0.001
+    iter_num = 500
+    inf_v_fun, inf_opt_policy = value_iteration(gamma,eps,iter_num,per_adj_states,mino_adj_states,maze_per)
+    
+    # generate 10000 games
+    win_num = 0
+    for i in range(10000):
+        inf_person_states, inf_mino_states = simulate(inf_opt_policy,init_per,init_mino,mino_adj_states,per_adj_states)
+        if (inf_person_states[-1]==Maze.EXITIDX) and (inf_mino_states[-1]!=Maze.EXITIDX):
+            win_num += 1
+            #print(win_num)
+    print("survive probability: " + str(win_num/10000))
+    # print("infiite horizon person states: ")
+    # print(inf_person_states)
+    # print("infinite horizon mino states: ")
+    # print(inf_mino_states)
