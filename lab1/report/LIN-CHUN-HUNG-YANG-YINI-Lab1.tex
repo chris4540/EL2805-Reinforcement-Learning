@@ -88,6 +88,16 @@ This MDP is under a finite time horizon $T$. Thus the objective function can be 
 $$G_T=\mathbb{E}\left\{\sum_{t=0}^T r_t(S_t,a_t)\right\}$$
 
 \subsection{Solve the problem for T=20}
+One generated solution has been shown in Figure \ref{solution}.
+The red arrows correspond to the person's route, while the blue ones refer to the minotaur's route.
+In this solution, the person succeeds escaping when $t=17$.
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.5]{solution.jpg}
+  \caption{A generated solution for T=20}
+  \label{solution}
+\end{figure}
+
 
 \subsection{Modify MDP with infinite time horizon}
 Under this condition, the time horizon is no longer finite. Instead, $T$ is infinite and follows the following geometric distribution:
