@@ -88,9 +88,14 @@ $$G_T=\mathbb{E}\left\{\sum_{t=0}^T r_t(S_t,a_t)\right\}$$
 \subsection{Solve the problem for T=20}
 
 \subsection{Modify MDP with infinite time horizon}
-
-
-
+Under this condition, the time horizon is no longer finite. Instead, $T$ is infinite and follows the following geometric distribution:
+$$P(T=t)=(1-p)^tp, \quad t=0,1,\cdots$$ 
+where $p=\frac{1}{30}$. Therefore, when $t$ is increasing, the probability is decreasing. 
+Thus, we can re-formulate this problem as a MDP with infinite time horizon and discounted rewards. The objective function is changed into:
+$$G_{\gamma}=\mathbb{E}\left\{\sum_{t=0}^{\infty}\gamma^t r_t(S_t,a_t)\right\}$$
+where $\gamma=1-p=0.97$.
+Other settings for this MDP are the same as before. And now we need to use the value iteration algorithm to obtain the optimal policy.
+  
 % Quesiton 2
 
 % Quesiton 3
