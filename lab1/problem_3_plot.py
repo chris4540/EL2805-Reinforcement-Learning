@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Use this script to generate plot pdfs
+"""
 import pandas as pd
 from os.path import join
 import matplotlib.pyplot as plt
@@ -12,7 +15,7 @@ class Config:
         0.3,
         0.01,
         0.05,
-        0.005,
+        # 0.005,
     ]
 
 

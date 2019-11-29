@@ -20,6 +20,8 @@
 \usepackage{cleveref}       % this package must be loaded at the last
 \usepackage{subcaption}
 \usepackage{enumitem}
+
+\DeclareMathOperator*{\argmax}{argmax}
 \newlist{steps}{enumerate}{1}
 \setlist[steps, 1]{label = Step \arabic*:}
 
@@ -116,8 +118,10 @@ Other settings for this MDP are the same as before. And now we need to use the v
 \section{Quesiton 3}
 \subsection{Problem Formulation}
 
+This problem is a discounted reinforcement learning problems
+
 % state
-\textbf{State space:}
+\textbf{States:}
 
 Consider the police location $S_p$ and the robber location $S_r$, can be represented
 as a coordinate $(r, c)$, where $0 \leq r \leq 3$ is the row index and $0 \leq c \leq 3$
@@ -129,7 +133,7 @@ the cardinality the state of the problem $S = S_p \times S_r$ is 256.
 \vspace{0.3cm}
 
 % action
-\textbf{Behavior policy and Action space:}
+\textbf{Behavior policy and Actions:}
 
 As the Q-learning is off-policy learning and the target policy (the policy being
 learned) is optimal given that the behavior policy explores all (state, action) pairs
@@ -173,8 +177,14 @@ where $B$ is the bank location
 \textbf{Algorithm:}
 \begin{steps}
   \item Initialize a Q-function with zeros
-  \item Generate one step future with the randomized policy
-  \item Third thing to do
+  \item Observe $(s_t, a_t, r_t, s_{t+1})$ under the randomized policy
+  \item Update the Q-function with
+  \begin{equation*}
+    Q(s_t, a_t) = Q(s_t, a_t) + \alpha [r_t + \lambda\max_{b \in A} Q(s_{t+1}, b) - Q(s_t, a)]
+  \end{equation*}
+  where the learning rate $\alpha = 1 / n(s, a)$ and $n(s, a)$ is the number of visits
+  of the $(s, a)$ pair
+  \item Goto Step 2 and have $t = t + 1$.
 \end{steps}
 
 The plot of the value function over time at the initial state is shown in Figure
@@ -207,6 +217,36 @@ we take $\Delta t$ as 10000.
 
 % SASSA
 \subsection{SASSA}
+
+As we need $\epsilon$-greedy exploration, the RL problem remain the same except
+the behavior policy.
+
+\textbf{Behavior policy:}
+
+The $\epsilon$-greedy policy is a mapping $\pi_b: S \rightarrow A $:
+
+\begin{equation*}
+  a =
+  \begin{cases}
+    \argmax_b Q(s, b) ,& \text{with probability} ~ 1 - \epsilon\\
+    \text{uniform}(A) ,& \text{with probability} ~ \epsilon
+  \end{cases}
+\end{equation*}
+depends on the current estimation of the Q-function.
+
+\textbf{Algorithm:}
+\begin{steps}
+  \item Initialize a Q-function with zeros
+  \item Observe $(s_t, a_t, r_t, s_{t+1}, a_{t+1})$ under the $\epsilon$-greedy
+        policy based on current Q-function estimation.
+  \item Update the Q-function with
+\begin{equation*}
+  Q(s_t, a_t) = Q(s_t, a_t) + \alpha [r_t + \lambda Q(s_{t+1}, a_{t+1}) - Q(s_t, a)]
+\end{equation*}
+  where the learning rate $\alpha = 1 / n(s, a)$ and $n(s, a)$ is the number of visits
+  of the $(s, a)$ pair
+  \item Goto Step 2 and have $t = t + 1$.
+\end{steps}
 
 The plot of the value function over time at the initial state is shown in Figure
 \ref{fig:sassa-v0}.
