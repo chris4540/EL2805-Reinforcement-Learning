@@ -19,7 +19,9 @@
 \usepackage{algpseudocode}
 \usepackage{cleveref}       % this package must be loaded at the last
 \usepackage{subcaption}
-
+\usepackage{enumitem}
+\newlist{steps}{enumerate}{1}
+\setlist[steps, 1]{label = Step \arabic*:}
 
 \title{Lab1 Report}
 
@@ -37,8 +39,8 @@
 % Quesiton 1
 \section{Problem 1: The Maze and the Random Minotaur}
 \subsection{Formulate the problem as an MDP}
+
 This problem can be formulated as an MDP with finite horizon.
-\newline
 
 \textbf{State space:} \\
 Here we use a pair of positions in the maze as a state. The state space $S$ can be described as follows:
@@ -127,7 +129,7 @@ the cardinality the state of the problem $S = S_p \times S_r$ is 256.
 \vspace{0.3cm}
 
 % action
-\textbf{Action space:}
+\textbf{Behavior policy and Action space:}
 
 As the Q-learning is off-policy learning and the target policy (the policy being
 learned) is optimal given that the behavior policy explores all (state, action) pairs
@@ -142,13 +144,19 @@ horizon for learning.
   \text{where} ~
   A &= \{\textup{Up},\textup{Down},\textup{Left},\textup{Right},\textup{StandStill}\}
 \end{align*}
+% Trans
+\textbf{Transition probabilities:}
+
+All transition is deterministic and therefore
+\begin{equation*}
+  p(s' | s, a) = 1
+\end{equation*}
 
 % reward
 \textbf{Reward:}
 
-As the transition is deterministic (i.e. $p(s' | s, a) = 1$)
-
-The reward can be formulated as a function of $r: S\times A \rightarrow S \rightarrow \mathbb{R}$.
+As the transition is deterministic,
+the reward can be formulated as a function of $r: S\times A \rightarrow S \rightarrow \mathbb{R}$.
 \begin{equation*}
   r(s, a) = r(s') =
 \begin{cases}
@@ -161,11 +169,21 @@ where $B$ is the bank location
 
 % Q-learning
 \subsection{Q-learning}
+
+\textbf{Algorithm:}
+\begin{steps}
+  \item Initialize a Q-function with zeros
+  \item Generate one step future with the randomized policy
+  \item Third thing to do
+\end{steps}
+
 The plot of the value function over time at the initial state is shown in Figure
 \ref{fig:q-learn-v0}.
 
 We also plot the rolling average delta Q-function $|Q^{(t)} - Q^{(t-\Delta t)}|$ over time
-to see if the Q-function converges. We take $\Delta t$ as 10000.
+to see if the Q-function converges in Figure \ref{fig:q-learn-delta-q}.
+The matrix norm is Frobenius and
+we take $\Delta t$ as 10000.
 
 
 \begin{figure}
@@ -181,20 +199,29 @@ to see if the Q-function converges. We take $\Delta t$ as 10000.
     \centering
     \includegraphics[width=\linewidth]{q_learn_norm_delta_q.pdf}
     \caption{The delta Q-function $|Q^{(t)} - Q^{(t-\Delta t)}|$ over time}
-    % \label{fig:sub2}
+    \label{fig:q-learn-delta-q}
   \end{subfigure}
-  \caption{Plots of Q-learning showing the convergence}
-  % \label{fig:test}
+  \caption{Plots of the Q-learning process showing the convergence}
 \end{figure}
 
 
 % SASSA
 \subsection{SASSA}
 
-We also plot the rolling average delta Q-function $|Q^{(t)} - Q^{(t-\Delta t)}|$ over time
-to see if the Q-function converges. The $\Delta t$ is 10000 and the size of the rolling window
-is 20. We use the rolling mean in log scale plot since the sudden change is
-small in normal scale but large in log scale
+The plot of the value function over time at the initial state is shown in Figure
+\ref{fig:sassa-v0}.
+
+
+We gave both the delta Q-function on normal scale and log scale as what we did
+in Q-learning section.
+However, we applied a rolling mean to the log scale plot as there are a lot
+sudden changes.
+
+Those sudden changes come from the $(s, a)$ pairs the SASSA algorithm visits
+with the probability $\epsilon / |A|$ as the state-action pair is generally not
+reached when applying the greedy behavior policy.
+
+The results are shown in Figure \ref{fig:sassa-delta-q} and \ref{fig:sassa-delta-q-log}.
 
 \begin{figure}
   \centering
@@ -202,22 +229,21 @@ small in normal scale but large in log scale
     \centering
     \includegraphics[width=.8\linewidth]{sassa_v_fun_0.pdf}
     \caption{The value function over time at the initial state}
-    % \label{fig:sub1}
+    \label{fig:sassa-v0}
   \end{subfigure}
   \begin{subfigure}{\textwidth}
     \centering
     \includegraphics[width=.8\linewidth]{sassa_norm_delta_q.pdf}
     \caption{The delta Q-function $|Q^{(t)} - Q^{(t-\Delta t)}|$ over time}
-    % \label{fig:sub2}
+    \label{fig:sassa-delta-q}
   \end{subfigure}
   \begin{subfigure}{\textwidth}
     \centering
     \includegraphics[width=.8\linewidth]{sassa_norm_delta_q_log.pdf}
-    \caption{The rolling average delta Q-function $|Q^{(t)} - Q^{(t-\Delta t)}|$ over time in log scale}
-    % \label{fig:sub2}
+    \caption{The rolling average delta Q-function $|Q^{(t)} - Q^{(t-\Delta t)}|$ over time on log scale}
+    \label{fig:sassa-delta-q-log}
   \end{subfigure}
-  \caption{A figure with two subfigures}
-  % \label{fig:test}
+  \caption{Plots of the SASSA learning process showing the convergence}
 \end{figure}
 
 
