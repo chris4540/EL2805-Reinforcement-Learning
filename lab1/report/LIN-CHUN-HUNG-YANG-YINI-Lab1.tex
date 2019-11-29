@@ -46,16 +46,18 @@ $$S=\{S_i=(x_p,y_p,x_m,y_m)|i=0,\cdots,3136\}, \quad x_p,x_m\in [0,6],\  y_p,y_m
 where $(x_p,y_p)$ refers to the position of the person, while $(x_m,y_m)$ is the position of the Minotaur.
 Here we can divide this state space into four part:
 $$S=S_{unavailable}\cup S_{available}\cup S_{dead}\cup S_{escape}$$
-where $S_{unavailable}=\{(x_p,y_p)\in wall\}$ refers to the states where the person is in the wall. 
-$S_{dead}=\{S_i|x_p=x_m,y_p=y_m\}$ corresponds to the states where the person and minotaur are in the same position. 
+where $S_{unavailable}=\{(x_p,y_p)\in wall\}$ refers to the states where the person is in the wall.
+$S_{dead}=\{S_i|x_p=x_m,y_p=y_m\}$ corresponds to the states where the person and minotaur are in the same position.
 $S_{escape}=\{S_i|(x_p,y_p)=exit,(y_p,y_m)\neq exit\}$ includes the states at which the person succeeds escaping.
 And both $S_{dead}, S_{escape}$ are absorbing states.
 \newline
 
 \textbf{Action space:} \\
 In this problem, the minotaur follows a random walk. The action space for the person is as below:
-$$A=\{\textup{Up},\textup{Down},\textup{Left},\textup{Right},\textup{StandStill}\}$$
-\newline
+
+\begin{equation*}
+  A=\{\textup{Up},\textup{Down},\textup{Left},\textup{Right},\textup{StandStill}\}
+\end{equation*}
 
 \textbf{Reward:} \\
 The reward can be formulated as a function of $r: S\times A\rightarrow \mathbb{R}$.
@@ -64,8 +66,8 @@ $$r(s,:)=\left\{\begin{aligned}
  -1 \quad &s\in S_{dead} \\
  0 \quad &\textup{otherwise}
 \end{aligned}\right.$$
-When the state is in $S_{escape}$, no matter what actions the person take, the reward will always be 10. 
-While the state is in $S_{dead}$, the punishment will be $-1$ for whatever actions. 
+When the state is in $S_{escape}$, no matter what actions the person take, the reward will always be 10.
+While the state is in $S_{dead}$, the punishment will be $-1$ for whatever actions.
 For other available movement, there will be no reward or punishment.
 \newline
 
@@ -89,18 +91,61 @@ $$G_T=\mathbb{E}\left\{\sum_{t=0}^T r_t(S_t,a_t)\right\}$$
 
 \subsection{Modify MDP with infinite time horizon}
 Under this condition, the time horizon is no longer finite. Instead, $T$ is infinite and follows the following geometric distribution:
-$$P(T=t)=(1-p)^tp, \quad t=0,1,\cdots$$ 
-where $p=\frac{1}{30}$. Therefore, when $t$ is increasing, the probability is decreasing. 
+$$P(T=t)=(1-p)^tp, \quad t=0,1,\cdots$$
+where $p=\frac{1}{30}$. Therefore, when $t$ is increasing, the probability is decreasing.
 Thus, we can re-formulate this problem as a MDP with infinite time horizon and discounted rewards. The objective function is changed into:
 $$G_{\gamma}=\mathbb{E}\left\{\sum_{t=0}^{\infty}\gamma^t r_t(S_t,a_t)\right\}$$
 where $\gamma=1-p=0.97$.
 Other settings for this MDP are the same as before. And now we need to use the value iteration algorithm to obtain the optimal policy.
-  
+
 % Quesiton 2
 
 % Quesiton 3
 \section{Quesiton 3}
+\subsection{Problem Formulation}
 
-% Quesiton 4
-\section{Quesiton 4}
+% state
+\textbf{State space:}
+
+Consider the police location $S_p$ and the robber location $S_r$, can be represented
+as a coordinate $(r, c)$, where $0 \leq r \leq 3$ is the row index and $0 \leq c \leq 3$
+is the column index.
+
+Therefore, the cardinality of the set $S_p$ and $S_r$ is 16 and
+the cardinality the state of the problem $S = S_p \times S_r$ is 256.
+
+\vspace{0.3cm}
+
+% action
+\textbf{Action space:}
+
+As the Q-learning is off-policy learning and the target policy (the policy being
+learned) is optimal given that the behavior policy explores all (state, action) pairs
+infinitely often.
+
+Therefore, we use the radomized policy with the probability that is uniform
+over actions as the behavior policy to generate the trajectory on infinite-time
+horizon for learning.
+
+\begin{align*}
+  P(a \in A) &= \frac{1}{|A|}, \\
+  \text{where} ~
+  A &= \{\textup{Up},\textup{Down},\textup{Left},\textup{Right},\textup{StandStill}\}
+\end{align*}
+
+% reward
+\textbf{Reward:}
+
+As the transition is deterministic (i.e. $p(s' | s, a) = 1$)
+
+The reward can be formulated as a function of $r: S\times A \rightarrow S \rightarrow \mathbb{R}$.
+\begin{equation*}
+  r(s, a) = r(s') =
+\begin{cases}
+    -10 ,& \text{if } S_p = S_r\\
+    1,   & \text{if } S_r = B\\
+    0    & \text{otherwise}
+\end{cases}
+\end{equation*}
+where $B$ is the bank location
 \end{document}
