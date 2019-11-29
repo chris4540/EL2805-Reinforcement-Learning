@@ -34,22 +34,29 @@ ax = sassa_v_fun_df.plot(figsize=(10, 6))
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 ax.set_xlabel("Time step")
 ax.set_ylabel("Value Function")
-ax.set_title("SASSA: Value Function over time at the inital state")
+# ax.set_title("SASSA: Value Function over time at the inital state")
 plt.savefig("report/sassa_v_fun_0.pdf", bbox_inches='tight')
 plt.cla()
 # # ---------------------------------------------------------------
 sassa_norm_delta_q_df = pd.DataFrame(sassa_norm_delta_q)
+ax = sassa_norm_delta_q_df.plot(figsize=(10, 6))
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+ax.set_xlabel("Time step")
+ax.set_ylabel("Frobenius norm of delta Q")
+plt.savefig("report/sassa_norm_delta_q.pdf", bbox_inches='tight')
+plt.cla()
+
+# log + rolling
 sassa_norm_delta_q_df = sassa_norm_delta_q_df.rolling(window=20).mean()
 ax = sassa_norm_delta_q_df.plot(figsize=(10, 6))
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 ax.set_xlabel("Time step")
 ax.set_ylabel("Frobenius norm of delta Q in log scale")
 ax.set_yscale('log')
-ax.set_title(
-    "SASSA: The rolling average of the Frobenius norm of delta Q-function")
-plt.savefig("report/sassa_norm_delta_q.pdf", bbox_inches='tight')
-# -----------------------------------------------------------------------------
+plt.savefig("report/sassa_norm_delta_q_log.pdf", bbox_inches='tight')
 plt.cla()
+
+# -----------------------------------------------------------------------------
 # Q function plots
 csvfile = "Q_learn.csv"
 df = pd.read_csv(join(cfg.outfolder, csvfile), index_col=0)
@@ -57,16 +64,20 @@ df = pd.read_csv(join(cfg.outfolder, csvfile), index_col=0)
 ax = df['v_fun_0'].plot(figsize=(10, 6))
 ax.set_xlabel("Time step")
 ax.set_ylabel("Value Function")
-ax.set_title("Q-learning: Value Function over time at the inital state")
 plt.savefig("report/q_learn_v_fun_0.pdf", bbox_inches='tight')
-
 plt.cla()
+
 s = df['norm_delta_q']
+ax = s.plot(figsize=(10, 6))
+ax.set_xlabel("Time step")
+ax.set_ylabel("Frobenius norm of delta Q.")
+plt.savefig("report/q_learn_norm_delta_q.pdf", bbox_inches='tight')
+plt.cla()
+
+
 s = s.rolling(window=20).mean()
 ax = s.plot(figsize=(10, 6))
 ax.set_xlabel("Time step")
 ax.set_ylabel("Frobenius norm of delta Q in log scale")
 ax.set_yscale('log')
-ax.set_title(
-    "Q-learning: The rolling average of the Frobenius norm of delta Q-function")
-plt.savefig("report/q_learn_norm_delta_q.pdf", bbox_inches='tight')
+plt.savefig("report/q_learn_norm_delta_q_log.pdf", bbox_inches='tight')
