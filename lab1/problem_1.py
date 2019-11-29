@@ -1,9 +1,9 @@
-#%%
+
 import numpy as np
 import os
 from enum import IntEnum
+import matplotlib.pyplot as plt
 
-#%%
 # actions
 class Action(IntEnum): 
     UP = 0
@@ -31,7 +31,7 @@ def init_maze(wall):
     maze = np.ones([Maze.HEIGHT,Maze.WIDTH])
     for i in wall:
         maze[i] = 0
-    return np.pad(maze, 1)
+    return np.pad(maze, 1, mode='constant')
 
 # state index -> position
 def idx_to_state(idx):
@@ -45,7 +45,7 @@ def state_to_idx(state):
 
 """
 ajacent_states:  a MazeSize*ActionSize 2d array for people/minotaur:
-    ajacent_states[cur_state, action] = next_state (None for unavailable actions)
+    ajacent_states[cur_state][action] = next_state (None for unavailable actions)
 """
 def adjacent_states(maze, has_still):
     adj_states = []
@@ -237,7 +237,7 @@ def simulate(opt_actions,init_per,init_mino,mino_adj_states,per_adj_states):
 
 #%%
 if __name__ == "__main__":
-    # initialize
+    ## initialize
     T = 20
     maze_per = init_maze(Maze.WALL)
     maze_mino = init_maze([])
@@ -252,17 +252,41 @@ if __name__ == "__main__":
         if per_adj_states[Maze.EXITIDX][i] is not None:
             per_adj_states[Maze.EXITIDX][i] = Maze.EXITIDX
 
-    # bellman dynamic programming
+    ## bellman dynamic programming
     v_fun, opt_actions = dynamic_programming(T,init_per,init_mino,per_adj_states,mino_adj_states)
 
-    # generate an optimal policy
+    ## generate an optimal policy
     person_states, mino_states = optimal_policy(opt_actions,T,init_per,init_mino,mino_adj_states,per_adj_states)
     print("person states: ")
     print(person_states)
     print("mino states: ")
     print(mino_states)
 
-    # T~Geo(30)
+    ## calculate the maximal probability
+    exit_probs = []
+    T_list = list(range(1,31))
+    round_num = 10000
+    for t in T_list:
+        win_count = 0
+        v_fun, opt_actions = dynamic_programming(t,init_per,init_mino,per_adj_states,mino_adj_states)
+        for i in range(round_num):
+            p_states, m_states = optimal_policy(opt_actions,t,init_per,init_mino,mino_adj_states,per_adj_states)
+            if (p_states[-1]==Maze.EXITIDX) and (m_states[-1]!=Maze.EXITIDX):
+                win_count += 1
+        exit_probs.append(win_count/round_num)
+    print("exit probability without stand still: ")
+    print(exit_probs)
+
+    plt.scatter(T_list, exit_probs)
+    plt.xlabel('T')
+    plt.ylabel('maximal probability of exiting')
+    plt.title('Minotaur can not stand still')
+    plt.savefig('no stand still.png')
+    # plt.title('Minotaur can stand still')
+    # plt.savefig('stand still.png')
+    plt.show()
+
+    ## infinite horizon MDP
     gamma = 0.97
     eps = 0.001
     iter_num = 500
@@ -274,9 +298,8 @@ if __name__ == "__main__":
         inf_person_states, inf_mino_states = simulate(inf_opt_policy,init_per,init_mino,mino_adj_states,per_adj_states)
         if (inf_person_states[-1]==Maze.EXITIDX) and (inf_mino_states[-1]!=Maze.EXITIDX):
             win_num += 1
-            #print(win_num)
     print("survive probability: " + str(win_num/10000))
-    # print("infiite horizon person states: ")
-    # print(inf_person_states)
-    # print("infinite horizon mino states: ")
-    # print(inf_mino_states)
+    print("infiite horizon person states: ")
+    print(inf_person_states)
+    print("infinite horizon mino states: ")
+    print(inf_mino_states)
