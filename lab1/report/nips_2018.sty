@@ -41,6 +41,8 @@
   \@preprinttrue
 }
 
+% declare preprint option, which creates a preprint version ready for
+% upload to, e.g., arXiv
 \ProcessOptions\relax
 
 % determine whether this is an anonymized submission
@@ -60,7 +62,8 @@
 % handle tweaks for camera-ready copy vs. submission copy
 \if@preprint
   \newcommand{\@noticestring}{%
-    Preprint. Work in progress.%
+    % Preprint. Work in progress.
+    % Project report for DD2424
   }
 \else
   \if@neuripsfinal
