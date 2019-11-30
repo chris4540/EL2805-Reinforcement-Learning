@@ -302,7 +302,7 @@ def value_iteration(lambda_=0.5):
     opt_policy = np.zeros(state_size)
     for s_idx in range(state_size):
         expect_val_func = np.sum(
-            trans[s_idx, :, :] * v_func[:, np.newaxis], axis=0)
+            trans[:, s_idx, :] * v_func[:, np.newaxis], axis=0)
         q_fun = rewards[s_idx, :] + lambda_ * expect_val_func
         action = Action(np.argmax(q_fun))
         opt_policy[s_idx] = action

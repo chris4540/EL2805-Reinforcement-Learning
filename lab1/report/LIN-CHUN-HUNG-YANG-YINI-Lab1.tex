@@ -21,6 +21,7 @@
 \usepackage{cleveref}       % this package must be loaded at the last
 \usepackage{subcaption}
 \usepackage{enumitem}
+\usepackage{verbatim}
 
 \DeclareMathOperator*{\argmax}{argmax}
 \newlist{steps}{enumerate}{1}
@@ -175,6 +176,29 @@ Therefore, we can re-formulate this problem as an infinite time horizon MDP with
 Other settings for this MDP are the same as before. And now we can use the value iteration(VI) algorithm to obtain the optimal policy.
 After simulating 10000 games with the optimal policy obtained from VI, the estimated probability of exiting is $97.83\%$.
 % Quesiton 2
+\section{Problem 2: Bank Robbing (Reloaded)}
+\subsection{Problem Formulation}
+\subsection{Value iteration}
+\subsection{Value function}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=.9\linewidth]{prob2_vfunc.pdf}
+  \caption{Plot the value function at the initial state against the discount factor $\lambda$}
+\end{figure}
+
+\subsection{Optimal policy}
+The gifs of the games for illustrating the optimal policy for different values of $\lambda$
+:\href{https://mega.nz/#F!ojJATAAK!KvsQXmRofJkyiYI9tlqWtA}{link}.
+
+We picked an example play within 3 restarts using the optimal policy
+derived from the optimal value function.
+\verbatiminput{../prob2_results/example_play_lbda_7E-1.txt}
+
+We can see that the robber try to stand still at Bank 1 no matter what position
+the police is. We observe that the expected time the police used to arrive at
+bank 1 is greater than 5.
+
 
 % Quesiton 3
 \section{Problem 3: Bank Robbing (Reloaded)}
