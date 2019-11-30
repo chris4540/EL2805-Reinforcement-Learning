@@ -204,6 +204,7 @@ where $S_{\text{bank}}$ is a set of bank locations.
 
 % Actions
 \textbf{Actions:}
+
 The robber can take the following actions
 \begin{equation*}
   a_r \in A = \{\textup{Up},\textup{Down},\textup{Left},\textup{Right},\textup{StandStill}\}
@@ -224,11 +225,12 @@ algorithm to calculate it.
 
 \begin{minipage}{0.9\textwidth}
   \begin{algorithm}[H]
-    % \SetAlgoLined
+
     \centering
     \caption{Algorithm to calculate the transition probability}
     \label{algo1}
     \begin{algorithmic}
+      \State \textbf{Initialize the transition probability}: $p(: | :, :)$
       \For{$s \in S$}
         \State $s_p, s_r = s$
         \For{$a_r \in A$}
@@ -244,6 +246,8 @@ algorithm to calculate it.
   \end{algorithm}
 \end{minipage}
 
+The transition probability $p(s' | s, a)$ can be stored in an array.
+
 The function $\text{get\_police\_actions}(s)$ considers both the police location
 and the robber location.
 
@@ -253,16 +257,16 @@ cannot move diagonal.
 
 When the police and the robber are on the same row, the police actions are:
 \begin{equation*}
-  a_p \in \{ \text{Up}, \text{Down} \} \cup
+  a_p \in A_p = \{ \text{Up}, \text{Down} \} \cup
   \begin{cases}
     \{ \text{Left} \}, & \text{ if the police is on the right of the robber}\\
     \{ \text{Right} \},& \text{otherwise}
   \end{cases}
 \end{equation*}
 
-When the police and the robber are on the same row, the police actions are:
+When the police and the robber are on the same column, the police actions are:
 \begin{equation*}
-  a_p \in \{ \text{Left}, \text{Right} \} \cup
+  a_p \in A_p =\{ \text{Left}, \text{Right} \} \cup
   \begin{cases}
     \{ \text{Up} \}, & \text{ if the police is below the robber}\\
     \{ \text{Down} \},& \text{otherwise}
