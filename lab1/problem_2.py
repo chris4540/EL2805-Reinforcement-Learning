@@ -108,6 +108,11 @@ class State:
         ret = "Police: {}; Rob: {}".format(self.police_state, self.rob_state)
         return ret
 
+    def apply_action(self, police_act, rob_act):
+        next_p_state = next_state(self.police_state, police_act)
+        next_r_state = next_state(self.rob_state, rob_act)
+        return State(next_p_state, next_r_state)
+
 
 class Action(IntEnum):
     STAND = 0
@@ -278,6 +283,7 @@ def value_iteration(lambda_=0.5):
                 lambda_ * expect_val_func)
 
             update = np.max(q_fun)
+            action = Action(np.argmax(q_fun))
             v_func[s_idx] = update
 
         # check the norm of the value fun
@@ -288,8 +294,116 @@ def value_iteration(lambda_=0.5):
         if delta < theta:
             break
 
-    return v_func
+    # calculate the optimal policy
+    opt_policy = np.zeros(state_size)
+    for s_idx in range(state_size):
+        expect_val_func = np.sum(
+            trans[s_idx, :, :] * v_func[:, np.newaxis], axis=0)
+        q_fun = rewards[s_idx, :] + lambda_ * expect_val_func
+        action = Action(np.argmax(q_fun))
+        opt_policy[s_idx] = action
+
+    return v_func, opt_policy
+
+
+def generate_game(v_func, policy, max_time=50):
+    s = State()
+    states = [s]
+
+    # deaths_count = 0
+    # reward_count = 0
+    for _ in range(max_time):
+        rob_act = policy[s.to_idx()]
+        policy_actions = next_police_actions(s)
+        police_act = np.random.choice(policy_actions)
+
+        # print(
+        #     "Police Act: {}; Rob_act: {}".format(
+        #         Action(police_act).name, Action(rob_act).name))
+        s_pi = s.apply_action(police_act, rob_act)
+        states.append(s_pi)
+
+        # print(s_pi)
+        if s_pi.at_the_same_pos():
+            s = State()
+        else:
+            s = s_pi
+
+        # check the next state
+
+    #     if s.at_the_same_pos():
+    #         deaths_count += 1
+    #     states.append((state, reward_count))
+    #     reward_count += state.reward()
+    #     action = policy(state, values)
+    #     transitions = state.get_transitions(action)
+    #     state = transitions[np.random.choice(range(len(transitions)))][0]
+    # return states, deaths_count, reward_count
+
+# def animate_solution(maze, path):
+#     # Some colours
+#     LIGHT_RED = '#FFC4CC'
+#     LIGHT_GREEN = '#95FD99'
+#     BLACK = '#000000'
+#     WHITE = '#FFFFFF'
+#     LIGHT_PURPLE = '#E8D0FF'
+#     LIGHT_ORANGE = '#FAE0C3'
+
+#     # Map a color to each cell in the maze
+#     col_map = {0: WHITE, 1: BLACK,
+#                2: LIGHT_GREEN, -6: LIGHT_RED, -1: LIGHT_RED}
+
+#     # Size of the maze
+#     rows, cols = maze.shape
+
+#     # Create figure of the size of the maze
+#     fig = plt.figure(1, figsize=(cols, rows))
+
+#     # Remove the axis ticks and add title title
+#     ax = plt.gca()
+#     ax.set_title('Policy simulation')
+#     ax.set_xticks([])
+#     ax.set_yticks([])
+
+#     # Give a color to each cell
+#     colored_maze = [[col_map[maze[j, i]]
+#                      for i in range(cols)] for j in range(rows)]
+
+#     # Create figure of the size of the maze
+#     fig = plt.figure(1, figsize=(cols, rows))
+
+#     # Create a table to color
+#     grid = plt.table(cellText=None,
+#                      cellColours=colored_maze,
+#                      cellLoc='center',
+#                      loc=(0, 0),
+#                      edges='closed')
+
+#     # Modify the hight and width of the cells in the table
+#     tc = grid.properties()['child_artists']
+#     for cell in tc:
+#         cell.set_height(1.0 / rows)
+#         cell.set_width(1.0 / cols)
+
+#     # Update the color at each frame
+#     for i in range(len(path)):
+#         grid.get_celld()[(path[i])].set_facecolor(LIGHT_ORANGE)
+#         grid.get_celld()[(path[i])].get_text().set_text('Player')
+#         if i > 0:
+#             if path[i] == path[i - 1]:
+#                 grid.get_celld()[(path[i])].set_facecolor(LIGHT_GREEN)
+#                 grid.get_celld()[(path[i])].get_text().set_text(
+#                     'Player is out')
+#             else:
+#                 grid.get_celld()[(path[i - 1])
+#                                  ].set_facecolor(col_map[maze[path[i - 1]]])
+#                 grid.get_celld()[(path[i - 1])].get_text().set_text('')
+#         display.display(fig)
+#         display.clear_output(wait=True)
+#         time.sleep(1)
 
 
 if __name__ == "__main__":
-    v_func = value_iteration()
+    v_func, opt_policy = value_iteration()
+    # print(opt_policy)
+    generate_game(v_func, opt_policy, max_time=50)
