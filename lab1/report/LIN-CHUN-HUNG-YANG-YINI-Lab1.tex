@@ -22,6 +22,8 @@
 \usepackage{subcaption}
 \usepackage{enumitem}
 \usepackage{verbatim}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 \DeclareMathOperator*{\argmax}{argmax}
 \newlist{steps}{enumerate}{1}
@@ -178,16 +180,109 @@ After simulating 10000 games with the optimal policy obtained from VI, the estim
 % Quesiton 2
 \section{Problem 2: Robbing Banks}
 \subsection{Problem Formulation}
-\subsection{Value iteration}
-\subsection{Value function}
+% state
+\textbf{States:}
 
-\begin{figure}[H]
+The police location $S_p$ and the robber location $S_r$, can be represented
+as a coordinate $(r, c)$,
+where $0 \leq r \leq 2$ is the row index and $0 \leq c \leq 5$ is the column index.
+
+The state of the problem is to consider them together as $S: S_p \times S_r$
+
+\textbf{Rewards:}
+
+The reward can be formulated as a function of $r: S\times A\rightarrow \mathbb{R}$.
+\begin{equation*}
+  r(s, :) = r((s_p, s_r), :)
+  \begin{cases}
+    -50  \quad & s_r = s_p \\
+    10   \quad & s_r ~ \in S_{\text{bank}}\\
+    0    \quad &\textup{otherwise}
+  \end{cases}
+\end{equation*}
+where $S_{\text{bank}}$ is a set of bank locations.
+
+% Actions
+\textbf{Actions:}
+The robber can take the following actions
+\begin{equation*}
+  a_r \in A = \{\textup{Up},\textup{Down},\textup{Left},\textup{Right},\textup{StandStill}\}
+\end{equation*}
+
+\textbf{Transition probability:}
+
+We then consider the Transition probability $p(s' | s, a)$.
+
+As the robber action is deterministic while the police action is randomized
+according the location of the robber.
+Therefore, we consider the transition for the police state is probabilistic and
+the corresponding probability is evenly distributed over the next states the current
+state can reach with certain actions.
+
+It is hard to write down the complete form of the transition but we can have an
+algorithm to calculate it.
+
+\begin{minipage}{0.9\textwidth}
+  \begin{algorithm}[H]
+    % \SetAlgoLined
+    \centering
+    \caption{Algorithm to calculate the transition probability}
+    \label{algo1}
+    \begin{algorithmic}
+      \For{$s \in S$}
+        \State $s_p, s_r = s$
+        \For{$a_r \in A$}
+          \State $\text{police\_actions} \gets \text{get\_police\_actions}(s)$
+          \State $p \gets 1 / \text{police\_actions.length}$
+          \For{$a_p \in \text{police\_actions}$}
+            \State $s' \gets \text{apply}(s, a_p, a_r)$
+            \State $p(s' | s, a_r) \gets p$
+          \EndFor
+        \EndFor
+      \EndFor
+    \end{algorithmic}
+  \end{algorithm}
+\end{minipage}
+
+The function $\text{get\_police\_actions}(s)$ considers both the police location
+and the robber location.
+
+When the police and the robber are neither on the same row nor on the same column.
+The police moves vertically and horizontally with probability 1/2 as the police
+cannot move diagonal.
+
+When the police and the robber are on the same row, the police actions are:
+\begin{equation*}
+  a_p \in \{ \text{Up}, \text{Down} \} \cup
+  \begin{cases}
+    \{ \text{Left} \}, & \text{ if the police is on the right of the robber}\\
+    \{ \text{Right} \},& \text{otherwise}
+  \end{cases}
+\end{equation*}
+
+When the police and the robber are on the same row, the police actions are:
+\begin{equation*}
+  a_p \in \{ \text{Left}, \text{Right} \} \cup
+  \begin{cases}
+    \{ \text{Up} \}, & \text{ if the police is below the robber}\\
+    \{ \text{Down} \},& \text{otherwise}
+  \end{cases}
+\end{equation*}
+
+\subsection{Value function}
+We solved the problem with value iteration when different values of $\lambda$.
+
+The optimal value function at the initial state is shown in Figure \ref{fig:prob2-valfun}
+
+\begin{figure}
   \centering
   \includegraphics[width=.9\linewidth]{prob2_vfunc.pdf}
   \caption{Plot the value function at the initial state against the discount factor $\lambda$}
+  \label{fig:prob2-valfun}
 \end{figure}
 
-\subsection{Optimal policy}
+\subsection{Optimal policy:}
+
 The gifs of the games for illustrating the optimal policy for different values of $\lambda$
 :\href{https://mega.nz/#F!ojJATAAK!KvsQXmRofJkyiYI9tlqWtA}{link}.
 
