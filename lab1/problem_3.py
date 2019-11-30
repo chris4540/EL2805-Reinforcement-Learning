@@ -250,9 +250,9 @@ if __name__ == "__main__":
         r_si_next = state_to_idx(rob_state_next)
         p_si_next = state_to_idx(police_state_next)
 
-        # collect the reward when we have s_t; a_t (i.e. s_{t+1}).
-        # i.e. r(s_{t}, a_{t})
-        reward = get_reward(rob_state_next, police_state_next)
+        # collect the reward when we have s_t; a_t.
+        # i.e. r(s_{t}, a_{t}) = r(s_{t}, :)
+        reward = get_reward(rob_state, police_state)
         acc_reward += reward
 
         # Make a next action (a_{t+1}) according to the policy (and algorithm)

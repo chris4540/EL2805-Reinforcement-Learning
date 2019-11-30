@@ -22,8 +22,7 @@
 \usepackage{subcaption}
 \usepackage{enumitem}
 \usepackage{verbatim}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
+
 
 \DeclareMathOperator*{\argmax}{argmax}
 \newlist{steps}{enumerate}{1}
@@ -233,6 +232,10 @@ algorithm to calculate it.
       \State \textbf{Initialize the transition probability}: $p(: | :, :)$
       \For{$s \in S$}
         \State $s_p, s_r = s$
+        \If{$s_p$ is $s_r$}
+          \State $p(s' | s, :) \gets 1$
+          \State skip below and goto next loop (continue)
+        \EndIf
         \For{$a_r \in A$}
           \State $\text{police\_actions} \gets \text{get\_police\_actions}(s)$
           \State $p \gets 1 / \text{police\_actions.length}$
@@ -347,10 +350,10 @@ All transition is deterministic and therefore
 As the transition is deterministic,
 the reward can be formulated as a function of $r: S\times A \rightarrow S \rightarrow \mathbb{R}$.
 \begin{equation*}
-  r(s, a) = r(s') =
+  r(s, a) = r((s_p, s_r), :) =
 \begin{cases}
-    -10 ,& \text{if } S_p = S_r\\
-    1,   & \text{if } S_r = B\\
+    -10 ,& \text{if } s_p = s_r\\
+    1,   & \text{if } s_r = B\\
     0    & \text{otherwise}
 \end{cases}
 \end{equation*}
