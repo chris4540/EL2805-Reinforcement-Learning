@@ -11,6 +11,7 @@ https://github.com/OleguerCanal/KTH_RL-EL2805
 """
 from enum import IntEnum
 import numpy as np
+from tqdm import trange
 
 
 class Town:
@@ -115,27 +116,36 @@ class Action(IntEnum):
     RIGHT = 4
 
 
-def prepare_trans():
+def preparation():
     state_size = State.size()
-    # ret.shape = [# of S', # of S, # of A]
-    ret = np.zeros((state_size, state_size, len(Action)))
+    # trans.shape = [# of S', # of S, # of A]
+    trans = np.zeros((state_size, state_size, len(Action)))
+    # trans.shape = [# of S, # of A]
+    rewards = np.zeros((state_size, len(Action)))
 
     # Loop over the all possible states
     for state_idx in range(state_size):
         s = State.from_idx(state_idx)
         # consider a situaion when police and rob in the same grid
-        if s.at_the_same_pos:
+        if s.at_the_same_pos():
             s_pi = State()  # go back to inital cond
-            ret[s_pi.to_idx(), s.to_idx(), :] = 1.0
+            trans[s_pi.to_idx(), s.to_idx(), :] = 1.0
+            rewards[s.to_idx(), :] = -50.0  # The reward is indep of actions
             continue    # skip loop over actions
 
-        for a in Action:
-            tran_probs = get_trans_prob(s, a)
-            for s_pi, p in tran_probs.items():
-                ret[s_pi.to_idx(), s.to_idx(), a] = p
+        # consider reward: r(s, a)
+        if s.rob_state in Town.BANKS:
+            rewards[s.to_idx(), :] = 10  # The reward is indep of actions
 
-    # print(np.sum(ret))
-    # print(np.sum(ret, axis=0))
+        for a in Action:
+            for s_pi, p in get_trans_prob(s, a).items():
+                trans[s_pi.to_idx(), s.to_idx(), a] = p
+
+    print(np.sum(trans))
+    ret = {
+        'trans': trans,
+        'rewards': rewards
+    }
     return ret
 
 
@@ -150,7 +160,7 @@ def next_police_actions(state):
     actions = list()
 
     if police_row == rob_row and police_col == rob_col:
-        raise ValueError("Go to inital state")
+        raise ValueError("Goto inital state")
 
     # vertical movement
     if police_row > rob_row:  # police is on rob's south
@@ -238,9 +248,44 @@ def next_state(state, action):
     return next_state
 
 
-def value_iter_once(v_fun):
-    return v_fun
+def value_iteration(lambda_=0.5):
+    state_size = State.size()
+    v_func = np.zeros(state_size)
+    max_iters = 1000
+    prep = preparation()
+    trans = prep['trans']
+    rewards = prep['rewards']
+
+    eps = np.finfo(float).eps
+    theta = eps * (1 - lambda_) / lambda_
+    delta = 0
+
+    pbar_desc = "ITERATION - delta {:.2f};"
+    pbar = trange(max_iters)
+    for t in pbar:
+        # clone it
+        v_func_old = np.array(v_func)
+
+        # loop over state
+        for s_idx in range(state_size):
+            # s = State.from_idx(state_idx)
+            expect_val_func = np.sum(
+                trans[s_idx, :, :] * v_func[:, np.newaxis], axis=0)
+            q_fun = (
+                rewards[s_idx, :] +
+                lambda_ * expect_val_func)
+
+            update = np.max(q_fun)
+            v_func[s_idx] = update
+
+        # check the norm of the value fun
+        delta = np.linalg.norm(v_func - v_func_old)
+        pbar.desc = pbar_desc.format(delta)
+
+        if delta < theta:
+            break
+    return v_func
 
 
 if __name__ == "__main__":
-    prepare_trans()
+    tmp = value_iteration()
