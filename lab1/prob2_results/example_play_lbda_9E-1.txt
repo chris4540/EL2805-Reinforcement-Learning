@@ -1,0 +1,10 @@
+Step 1: Police: (1, 2); Rob: (0, 0), Robber Action: STAND
+Step 2: Police: (0, 2); Rob: (0, 0), Robber Action: STAND
+Step 3: Police: (1, 2); Rob: (0, 0), Robber Action: STAND
+Step 4: Police: (0, 2); Rob: (0, 0), Robber Action: STAND
+Step 5: Police: (0, 1); Rob: (0, 0), Robber Action: DOWN
+Step 6: Police: (1, 1); Rob: (1, 0), Robber Action: DOWN
+Step 7: Police: (0, 1); Rob: (2, 0), Robber Action: STAND
+Step 8: Police: (0, 0); Rob: (2, 0), Robber Action: STAND
+Step 9: Police: (0, 1); Rob: (2, 0), Robber Action: STAND
+Step 10: Police: (1, 1); Rob: (2, 0), Robber Action: STAND
