@@ -15,6 +15,7 @@ from tqdm import trange
 from utils.csvlogger import CustomizedCSVLogger as CSVLogger
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import pandas as pd
 
 
 class Town:
@@ -259,7 +260,7 @@ def next_state(state, action):
 
 
 def value_iteration(lambda_=0.5):
-    csv_fname = 'lab2_results/lab2_v_fun_0_lbda_{:.0E}.csv'.format(lambda_)
+    csv_fname = 'prob2_results/lab2_v_fun_0_lbda_{:.0E}.csv'.format(lambda_)
     logger = CSVLogger(csv_fname)
     state_size = State.size()
     v_func = np.zeros(state_size)
@@ -403,13 +404,21 @@ def animate_solution(states, lambda_):
     ani = animation.FuncAnimation(
         fig, update, interval=500, frames=len(states))
 
-    gif_name = 'lab2_results/lab2_game_lbda_{:.0E}.gif'.format(lambda_)
+    gif_name = 'prob2_results/lab2_game_lbda_{:.0E}.gif'.format(lambda_)
     ani.save(gif_name, writer='imagemagick')
 
 
 if __name__ == "__main__":
-    # preparation()
-    for lbda in [0.001, 0.3, 0.5, 0.7, 0.9]:
+
+    v_func_0 = dict()
+    for lbda in [0.01, 0.05, 0.1, 0.3, 0.5, 0.7, 0.9]:
         v_func, opt_policy = value_iteration(lbda)
-        states = generate_game(v_func, opt_policy, max_time=100)
+        v_func_0[lbda] = v_func[0]
+        states = generate_game(v_func, opt_policy, max_time=50)
         animate_solution(states, lbda)
+
+    # Save v_0
+    df = pd.Series(v_func_0).to_frame()
+    df.columns = ['V_0']
+    df.index.name = 'lambda'
+    df.to_csv('prob2_results/lab2_v0.csv')
