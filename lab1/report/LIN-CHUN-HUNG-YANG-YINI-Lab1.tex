@@ -176,7 +176,7 @@ Therefore, we can re-formulate this problem as an infinite time horizon MDP with
 Other settings for this MDP are the same as before. And now we can use the value iteration(VI) algorithm to obtain the optimal policy.
 After simulating 10000 games with the optimal policy obtained from VI, the estimated probability of exiting is $97.83\%$.
 % Quesiton 2
-\section{Problem 2: Bank Robbing (Reloaded)}
+\section{Problem 2: Robbing Banks}
 \subsection{Problem Formulation}
 \subsection{Value iteration}
 \subsection{Value function}
@@ -191,14 +191,14 @@ After simulating 10000 games with the optimal policy obtained from VI, the estim
 The gifs of the games for illustrating the optimal policy for different values of $\lambda$
 :\href{https://mega.nz/#F!ojJATAAK!KvsQXmRofJkyiYI9tlqWtA}{link}.
 
-We picked an example play within 3 restarts using the optimal policy
+We picked an example play when $\lambda$ is 0.9 and using the optimal policy
 derived from the optimal value function.
-\verbatiminput{../prob2_results/example_play_lbda_7E-1.txt}
+\verbatiminput{../prob2_results/example_play_lbda_9E-1.txt}
 
-We can see that the robber try to stand still at Bank 1 no matter what position
-the police is. We observe that the expected time the police used to arrive at
-bank 1 is greater than 5.
-
+We can see that the robber was trying to excape from the police using
+looping or walk around bank 1 and 2 when $\lambda$ is small (e.g. 0.1)
+while the robber was trying to go to other bank
+far away (e.g. bank 3 or 4) when $\lambda$ is large (e.g. 0.9).
 
 % Quesiton 3
 \section{Problem 3: Bank Robbing (Reloaded)}
