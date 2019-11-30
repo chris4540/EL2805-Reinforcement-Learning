@@ -13,6 +13,9 @@ from enum import IntEnum
 import numpy as np
 from tqdm import trange
 from utils.csvlogger import CustomizedCSVLogger as CSVLogger
+import matplotlib.pyplot as plt
+# from IPython import display
+# from time import time
 
 
 class Town:
@@ -329,81 +332,77 @@ def generate_game(v_func, policy, max_time=50):
         else:
             s = s_pi
 
-        # check the next state
+    return states
 
-    #     if s.at_the_same_pos():
-    #         deaths_count += 1
-    #     states.append((state, reward_count))
-    #     reward_count += state.reward()
-    #     action = policy(state, values)
-    #     transitions = state.get_transitions(action)
-    #     state = transitions[np.random.choice(range(len(transitions)))][0]
-    # return states, deaths_count, reward_count
 
-# def animate_solution(maze, path):
-#     # Some colours
-#     LIGHT_RED = '#FFC4CC'
-#     LIGHT_GREEN = '#95FD99'
-#     BLACK = '#000000'
-#     WHITE = '#FFFFFF'
-#     LIGHT_PURPLE = '#E8D0FF'
-#     LIGHT_ORANGE = '#FAE0C3'
+import matplotlib.animation as animation
 
-#     # Map a color to each cell in the maze
-#     col_map = {0: WHITE, 1: BLACK,
-#                2: LIGHT_GREEN, -6: LIGHT_RED, -1: LIGHT_RED}
 
-#     # Size of the maze
-#     rows, cols = maze.shape
+def animate_solution(states):
+    # Some colours
+    LIGHT_RED = '#FFC4CC'
+    LIGHT_GREEN = '#95FD99'
+    BLACK = '#000000'
+    WHITE = '#FFFFFF'
+    LIGHT_PURPLE = '#E8D0FF'
+    LIGHT_ORANGE = '#FAE0C3'
 
-#     # Create figure of the size of the maze
-#     fig = plt.figure(1, figsize=(cols, rows))
+    # Map a color to each cell in the maze
 
-#     # Remove the axis ticks and add title title
-#     ax = plt.gca()
-#     ax.set_title('Policy simulation')
-#     ax.set_xticks([])
-#     ax.set_yticks([])
+    # Size of the maze
+    rows = Town.HEIGHT
+    cols = Town.WIDTH
 
-#     # Give a color to each cell
-#     colored_maze = [[col_map[maze[j, i]]
-#                      for i in range(cols)] for j in range(rows)]
+    # Create figure of the size of the maze
+    fig = plt.figure(1, figsize=(cols, rows))
 
-#     # Create figure of the size of the maze
-#     fig = plt.figure(1, figsize=(cols, rows))
+    # Remove the axis ticks and add title title
+    ax = plt.gca()
+    title_fmt = 'Policy simulation at t = {}'
+    ax.set_title(title_fmt.format(0))
+    ax.set_xticks([])
+    ax.set_yticks([])
 
-#     # Create a table to color
-#     grid = plt.table(cellText=None,
-#                      cellColours=colored_maze,
-#                      cellLoc='center',
-#                      loc=(0, 0),
-#                      edges='closed')
+    # color town
 
-#     # Modify the hight and width of the cells in the table
-#     tc = grid.properties()['child_artists']
-#     for cell in tc:
-#         cell.set_height(1.0 / rows)
-#         cell.set_width(1.0 / cols)
+    # Give a color to each cell
+    colored_maze = [[WHITE for i in range(cols)] for j in range(rows)]
 
-#     # Update the color at each frame
-#     for i in range(len(path)):
-#         grid.get_celld()[(path[i])].set_facecolor(LIGHT_ORANGE)
-#         grid.get_celld()[(path[i])].get_text().set_text('Player')
-#         if i > 0:
-#             if path[i] == path[i - 1]:
-#                 grid.get_celld()[(path[i])].set_facecolor(LIGHT_GREEN)
-#                 grid.get_celld()[(path[i])].get_text().set_text(
-#                     'Player is out')
-#             else:
-#                 grid.get_celld()[(path[i - 1])
-#                                  ].set_facecolor(col_map[maze[path[i - 1]]])
-#                 grid.get_celld()[(path[i - 1])].get_text().set_text('')
-#         display.display(fig)
-#         display.clear_output(wait=True)
-#         time.sleep(1)
+    # Create figure of the size of the maze
+    fig = plt.figure(1, figsize=(cols, rows))
+
+    # Create a table to color
+    grid = plt.table(cellText=None,
+                     cellColours=colored_maze,
+                     cellLoc='center',
+                     loc=(0, 0),
+                     edges='closed')
+
+    # Modify the hight and width of the cells in the table
+    tc = grid.properties()['child_artists']
+    for cell in tc:
+        cell.set_height(1.0 / rows)
+        cell.set_width(1.0 / cols)
+
+    def update(i):
+        for g in grid.get_celld().values():
+            g.set_facecolor(WHITE)
+            g.get_text().set_text('')
+
+        s = states[i]
+        police_state, rob_state = s.unpack()
+        grid[rob_state[0], rob_state[1]].get_text().set_text('robber')
+        grid[rob_state[0], rob_state[1]].set_facecolor(LIGHT_GREEN)
+        grid[police_state[0], police_state[1]].get_text().set_text('police')
+        grid[police_state[0], police_state[1]].set_facecolor(LIGHT_RED)
+        ax.set_title(title_fmt.format(i))
+
+    ani = animation.FuncAnimation(
+        fig, update, interval=100, frames=len(states))
+    ani.save("test.gif", writer='imagemagick')
 
 
 if __name__ == "__main__":
     v_func, opt_policy = value_iteration()
-    # print(opt_policy)
-    generate_game(v_func, opt_policy, max_time=50)
+    states = generate_game(v_func, opt_policy, max_time=50)
+    animate_solution(states)
