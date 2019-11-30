@@ -14,8 +14,7 @@ import numpy as np
 from tqdm import trange
 from utils.csvlogger import CustomizedCSVLogger as CSVLogger
 import matplotlib.pyplot as plt
-# from IPython import display
-# from time import time
+import matplotlib.animation as animation
 
 
 class Town:
@@ -150,7 +149,8 @@ def preparation():
             for s_pi, p in get_trans_prob(s, a).items():
                 trans[s_pi.to_idx(), s.to_idx(), a] = p
 
-    print(np.sum(trans))
+    # print(trans.shape)
+    # print(np.sum(trans[], axis=0))
     ret = {
         'trans': trans,
         'rewards': rewards
@@ -258,15 +258,15 @@ def next_state(state, action):
 
 
 def value_iteration(lambda_=0.5):
-    logger = CSVLogger('lab2_v_fun_0_lambda_{:.0E}.csv'.format(lambda_))
+    logger = CSVLogger('lab2_v_fun_0_lbda_{:.0E}.csv'.format(lambda_))
     state_size = State.size()
     v_func = np.zeros(state_size)
-    max_iters = 1000
+    max_iters = 500
     prep = preparation()
     trans = prep['trans']
     rewards = prep['rewards']
 
-    eps = np.finfo(float).eps
+    eps = 1e-4
     theta = eps * (1 - lambda_) / lambda_
     delta = 0
 
@@ -280,10 +280,8 @@ def value_iteration(lambda_=0.5):
         for s_idx in range(state_size):
             # s = State.from_idx(state_idx)
             expect_val_func = np.sum(
-                trans[s_idx, :, :] * v_func[:, np.newaxis], axis=0)
-            q_fun = (
-                rewards[s_idx, :] +
-                lambda_ * expect_val_func)
+                trans[:, s_idx, :] * v_func[:, np.newaxis], axis=0)
+            q_fun = rewards[s_idx, :] + lambda_ * expect_val_func
 
             update = np.max(q_fun)
             action = Action(np.argmax(q_fun))
@@ -320,13 +318,9 @@ def generate_game(v_func, policy, max_time=50):
         policy_actions = next_police_actions(s)
         police_act = np.random.choice(policy_actions)
 
-        # print(
-        #     "Police Act: {}; Rob_act: {}".format(
-        #         Action(police_act).name, Action(rob_act).name))
         s_pi = s.apply_action(police_act, rob_act)
         states.append(s_pi)
 
-        # print(s_pi)
         if s_pi.at_the_same_pos():
             s = State()
         else:
@@ -335,10 +329,7 @@ def generate_game(v_func, policy, max_time=50):
     return states
 
 
-import matplotlib.animation as animation
-
-
-def animate_solution(states):
+def animate_solution(states, lambda_):
     # Some colours
     LIGHT_RED = '#FFC4CC'
     LIGHT_GREEN = '#95FD99'
@@ -398,11 +389,16 @@ def animate_solution(states):
         ax.set_title(title_fmt.format(i))
 
     ani = animation.FuncAnimation(
-        fig, update, interval=100, frames=len(states))
-    ani.save("test.gif", writer='imagemagick')
+        fig, update, interval=200, frames=len(states))
+
+    gif_name = 'lab2_game_lbda_{:.0E}.gif'.format(lambda_)
+    ani.save(gif_name, writer='imagemagick')
 
 
 if __name__ == "__main__":
-    v_func, opt_policy = value_iteration()
-    states = generate_game(v_func, opt_policy, max_time=50)
-    animate_solution(states)
+    # preparation()
+    for lbda in [0.7, 0.9]:
+        # for lbda in [0.7]:
+        v_func, opt_policy = value_iteration(lbda)
+        states = generate_game(v_func, opt_policy, max_time=30)
+        animate_solution(states, lbda)
