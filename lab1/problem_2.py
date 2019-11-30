@@ -12,6 +12,7 @@ https://github.com/OleguerCanal/KTH_RL-EL2805
 from enum import IntEnum
 import numpy as np
 from tqdm import trange
+from utils.csvlogger import CustomizedCSVLogger as CSVLogger
 
 
 class Town:
@@ -249,6 +250,7 @@ def next_state(state, action):
 
 
 def value_iteration(lambda_=0.5):
+    logger = CSVLogger('lab2_v_fun_0_lambda_{:.0E}.csv'.format(lambda_))
     state_size = State.size()
     v_func = np.zeros(state_size)
     max_iters = 1000
@@ -260,7 +262,7 @@ def value_iteration(lambda_=0.5):
     theta = eps * (1 - lambda_) / lambda_
     delta = 0
 
-    pbar_desc = "ITERATION - delta {:.2f};"
+    pbar_desc = "ITERATION - delta {:.2f} - V_0: {:.2f};"
     pbar = trange(max_iters)
     for t in pbar:
         # clone it
@@ -280,12 +282,14 @@ def value_iteration(lambda_=0.5):
 
         # check the norm of the value fun
         delta = np.linalg.norm(v_func - v_func_old)
-        pbar.desc = pbar_desc.format(delta)
+        pbar.desc = pbar_desc.format(delta, v_func[0])
+        logger.log(iter=t, v_fun_0=v_func[0])
 
         if delta < theta:
             break
+
     return v_func
 
 
 if __name__ == "__main__":
-    tmp = value_iteration()
+    v_func = value_iteration()
