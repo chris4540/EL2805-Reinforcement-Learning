@@ -5,7 +5,7 @@ from enum import IntEnum
 import matplotlib.pyplot as plt
 
 # actions
-class Action(IntEnum): 
+class Action(IntEnum):
     UP = 0
     DOWN = 1
     LEFT = 2
@@ -26,7 +26,7 @@ class Maze:
     PerInit = (0,0)
     MinoInit = (6,5)
     EXITIDX = np.ravel_multi_index(EXIT, dims=(HEIGHT, WIDTH))
-  
+
 def init_maze(wall):
     maze = np.ones([Maze.HEIGHT,Maze.WIDTH])
     for i in wall:
@@ -47,21 +47,21 @@ def state_to_idx(state):
 ajacent_states:  a MazeSize*ActionSize 2d array for people/minotaur:
     ajacent_states[cur_state][action] = next_state (None for unavailable actions)
 """
-def adjacent_states(maze, has_still):
+def adjacent_states(maze, can_still):
     adj_states = []
     for i in range(Maze.HEIGHT):
         for j in range(Maze.WIDTH):
             if maze[i+1,j+1]==0:
                 adj_states.append([])
                 continue
-            
+
             next_states = []
-            
+
             if maze[i,j+1]==0:
                 next_states.append(None)
             else:
                 next_states.append(state_to_idx((i-1,j)))
-            
+
             if maze[i+2,j+1]==0:
                 next_states.append(None)
             else:
@@ -71,15 +71,15 @@ def adjacent_states(maze, has_still):
                 next_states.append(None)
             else:
                 next_states.append(state_to_idx((i,j-1)))
-            
+
             if maze[i+1,j+2]==0:
                 next_states.append(None)
             else:
                 next_states.append(state_to_idx((i,j+1)))
 
-            if has_still:
+            if can_still:
                 next_states.append(state_to_idx((i,j)))
-            
+
             adj_states.append(next_states)
 
     assert(len(adj_states)==Maze.SIZE)
@@ -243,10 +243,11 @@ if __name__ == "__main__":
     maze_mino = init_maze([])
     init_per = state_to_idx(Maze.PerInit)
     init_mino = state_to_idx(Maze.MinoInit)
-    mino_has_still = False # control minotaur actions
+    # mino_can_still: if minotaur is allowed to stand still
+    mino_can_still = True
 
     per_adj_states = adjacent_states(maze_per, True)
-    mino_adj_states = adjacent_states(maze_mino, mino_has_still)
+    mino_adj_states = adjacent_states(maze_mino, mino_can_still)
     # set the exit state absorbing
     for i in range(len(Action)):
         if per_adj_states[Maze.EXITIDX][i] is not None:
@@ -280,18 +281,20 @@ if __name__ == "__main__":
     plt.scatter(T_list, exit_probs)
     plt.xlabel('T')
     plt.ylabel('maximal probability of exiting')
-    plt.title('Minotaur can not stand still')
-    plt.savefig('no stand still.png')
-    # plt.title('Minotaur can stand still')
-    # plt.savefig('stand still.png')
-    plt.show()
+    if mino_can_still:
+        plt.title('Minotaur can stand still')
+        plt.savefig('report/stand_still.pdf')
+    else:
+        plt.title('Minotaur can not stand still')
+        plt.savefig('report/no_stand_still.pdf')
+    # plt.show()
 
     ## infinite horizon MDP
     gamma = 0.97
     eps = 0.001
     iter_num = 500
     inf_v_fun, inf_opt_policy = value_iteration(gamma,eps,iter_num,per_adj_states,mino_adj_states,maze_per)
-    
+
     # generate 10000 games
     win_num = 0
     for i in range(10000):
