@@ -43,7 +43,7 @@ class Town:
     POLICE_STATION = (1, 2)
 
     # The rob init place
-    ROB_INIT = BANKS[0]
+    ROB_INIT = (0, 0)
 
 
 class State:
@@ -138,7 +138,8 @@ def preparation():
         if s.at_the_same_pos():
             s_pi = State()  # go back to inital cond
             trans[s_pi.to_idx(), s.to_idx(), :] = 1.0
-            rewards[s.to_idx(), :] = -50.0  # The reward is indep of actions
+            # The reward is indep of actions
+            rewards[s.to_idx(), :] = -50
             continue    # skip loop over actions
 
         # consider reward: r(s, a)
@@ -187,8 +188,8 @@ def next_police_actions(state):
     else:
         actions.extend([Action.LEFT, Action.RIGHT])
 
-    if not (len(actions) <= 3):
-        raise ValueError("The lenght of police actions > 3")
+    assert len(actions) <= 3
+
     return actions
 
 
@@ -258,7 +259,8 @@ def next_state(state, action):
 
 
 def value_iteration(lambda_=0.5):
-    logger = CSVLogger('lab2_v_fun_0_lbda_{:.0E}.csv'.format(lambda_))
+    csv_fname = 'lab2_results/lab2_v_fun_0_lbda_{:.0E}.csv'.format(lambda_)
+    logger = CSVLogger(csv_fname)
     state_size = State.size()
     v_func = np.zeros(state_size)
     max_iters = 500
@@ -309,19 +311,29 @@ def value_iteration(lambda_=0.5):
 
 def generate_game(v_func, policy, max_time=50):
     s = State()
-    states = [s]
+    states = list()
 
-    # deaths_count = 0
-    # reward_count = 0
-    for _ in range(max_time):
+    while len(states) < max_time:
+        # record the state at time t
+        states.append(s)
+
+        # police action
+        police_actions = next_police_actions(s)
+        police_act = np.random.choice(police_actions)
         rob_act = policy[s.to_idx()]
-        policy_actions = next_police_actions(s)
-        police_act = np.random.choice(policy_actions)
+
+        output_fmt = "Step {}: {}, Robber Action: {}"
+        print(
+            "Step {}: {}, Robber Action: {}".format(
+                len(states), repr(s), Action(rob_act).name))
 
         s_pi = s.apply_action(police_act, rob_act)
-        states.append(s_pi)
 
         if s_pi.at_the_same_pos():
+            states.append(s_pi)
+            print(
+                "Step {}: {}, Robber Action: {}".format(
+                    len(states), repr(s_pi), 'RESTART'))
             s = State()
         else:
             s = s_pi
@@ -349,8 +361,8 @@ def animate_solution(states, lambda_):
 
     # Remove the axis ticks and add title title
     ax = plt.gca()
-    title_fmt = 'Policy simulation at t = {}'
-    ax.set_title(title_fmt.format(0))
+    title_fmt = 'λ = {}, Policy simulation at t = {}'
+    ax.set_title(title_fmt.format(lambda_, 0))
     ax.set_xticks([])
     ax.set_yticks([])
 
@@ -386,19 +398,18 @@ def animate_solution(states, lambda_):
         grid[rob_state[0], rob_state[1]].set_facecolor(LIGHT_GREEN)
         grid[police_state[0], police_state[1]].get_text().set_text('police')
         grid[police_state[0], police_state[1]].set_facecolor(LIGHT_RED)
-        ax.set_title(title_fmt.format(i))
+        ax.set_title(title_fmt.format(lambda_, i))
 
     ani = animation.FuncAnimation(
-        fig, update, interval=200, frames=len(states))
+        fig, update, interval=500, frames=len(states))
 
-    gif_name = 'lab2_game_lbda_{:.0E}.gif'.format(lambda_)
+    gif_name = 'lab2_results/lab2_game_lbda_{:.0E}.gif'.format(lambda_)
     ani.save(gif_name, writer='imagemagick')
 
 
 if __name__ == "__main__":
     # preparation()
-    for lbda in [0.7, 0.9]:
-        # for lbda in [0.7]:
+    for lbda in [0.001, 0.3, 0.5, 0.7, 0.9]:
         v_func, opt_policy = value_iteration(lbda)
-        states = generate_game(v_func, opt_policy, max_time=30)
+        states = generate_game(v_func, opt_policy, max_time=100)
         animate_solution(states, lbda)
