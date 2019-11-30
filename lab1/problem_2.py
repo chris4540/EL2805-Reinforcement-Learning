@@ -59,6 +59,33 @@ class State:
     def unpack(self):
         return self.police_state, self.rob_state
 
+    def to_idx(self):
+        indices = (*self.police_state, *self.rob_state)
+        ret = np.ravel_multi_index(indices, dims=(
+            Town.HEIGHT, Town.WIDTH, Town.HEIGHT, Town.WIDTH))
+        return ret
+
+    @classmethod
+    def from_idx(cls, idx):
+        """
+        Constrcut the state from index
+        Example:
+            s = State.from_idx(100)
+            print(s.police_state)   # (0, 5)
+            print(s.rob_state)      # (1, 4)
+            print(s.to_idx)         # 100
+        """
+        # indices = (*police_state, *rob_state)
+        indices = np.unravel_index(idx, shape=(
+            Town.HEIGHT, Town.WIDTH, Town.HEIGHT, Town.WIDTH))
+
+        # unpack indices
+        police_state = (indices[0], indices[1])
+        rob_state = (indices[2], indices[3])
+
+        # return an instanitation
+        return cls(police_state, rob_state)
+
     @staticmethod
     def size():
         """
