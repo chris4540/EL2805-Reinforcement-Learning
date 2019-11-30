@@ -117,8 +117,8 @@ class Action(IntEnum):
 
 def prepare_trans():
     state_size = State.size()
-    # trans.shape = [# of S', # of S, # of A]
-    trans = np.zeros((state_size, state_size, len(Action)))
+    # ret.shape = [# of S', # of S, # of A]
+    ret = np.zeros((state_size, state_size, len(Action)))
 
     # Loop over the all possible states
     for state_idx in range(state_size):
@@ -126,18 +126,22 @@ def prepare_trans():
         # consider a situaion when police and rob in the same grid
         if s.at_the_same_pos:
             s_pi = State()  # go back to inital cond
-            trans[s_pi.to_idx(), s.to_idx(), :] = 1.0
+            ret[s_pi.to_idx(), s.to_idx(), :] = 1.0
             continue    # skip loop over actions
 
         for a in Action:
-            trans = get_trans_prob(s, a)
+            tran_probs = get_trans_prob(s, a)
+            for s_pi, p in tran_probs.items():
+                ret[s_pi.to_idx(), s.to_idx(), a] = p
 
-    return trans
+    # print(np.sum(ret))
+    # print(np.sum(ret, axis=0))
+    return ret
 
 
 def next_police_actions(state):
     # unpack the state first
-    police_state, rob_state = state.unpack
+    police_state, rob_state = state.unpack()
 
     # consider the random action of the police
     police_row, police_col = police_state
@@ -163,6 +167,9 @@ def next_police_actions(state):
         actions.append(Action.RIGHT)
     else:
         actions.extend([Action.LEFT, Action.RIGHT])
+
+    if not (len(actions) <= 3):
+        raise ValueError("The lenght of police actions > 3")
     return actions
 
 
@@ -177,11 +184,28 @@ def get_trans_prob(state, action):
     Returns:
         dict:  dictionary of probabilities as a function of next state s'
     """
+    ret = dict()
     # check the actions the police will take
-    next_police_actions = next_police_actions(state)
+    police_actions = next_police_actions(state)
+
+    # As the police takes actions randomly and the actions are distributed uniformly.
+    prob = 1.0 / len(police_actions)
+
+    police_state, rob_state = state.unpack()
+
+    # check the next rob state
+    next_rob_state = next_state(rob_state, action)
+
+    # check the next police states
+    for a in police_actions:
+        next_police_state = next_state(police_state, a)
+        s_pi = State(next_police_state, next_rob_state)
+        ret[s_pi] = prob
+
+    return ret
 
 
-def next_state_of_a_role(state, action):
+def next_state(state, action):
     """[summary]
 
     Args:
@@ -219,4 +243,4 @@ def value_iter_once(v_fun):
 
 
 if __name__ == "__main__":
-    pass
+    prepare_trans()
