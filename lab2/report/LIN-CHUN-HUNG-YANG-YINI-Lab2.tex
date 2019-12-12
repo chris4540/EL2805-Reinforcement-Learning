@@ -43,9 +43,78 @@
 \begin{document}
 \maketitle
 
-% Quesiton 1
 \section{Problem 1}
 
+\subsection{Formulate the problem as a RL problem}
+
+This problem can be formulated as an episodic RL problem.
+
+\textbf{State space:}
+
+Here we use the observations from openAI as states. The state space $S$ can be described as follows:
+$$ S = \{S_i=(p,v,\theta,\theta_{tip})|p\in[-4.8,4.8],v\in[-\infty,\infty],\theta\in[-24,24],\theta_{tip}\in[-\infty,\infty],i=0,1,\cdots\}$$
+where $p,v$ refer to the position and velocity of the cart respectively, while $\theta,\theta_{tip}$ correspond to the angle and velocity at tip of the pole.
+
+\textbf{Action space:}
+$$A=\{0,1\}$$
+where $0$ means to push cart to the left and $1$ means to push cart to the right.
+
+\textbf{Reward:}
+
+The reward can be formulated as a function of $r: S\times A\rightarrow \mathbb{R}$.
+\begin{equation*}
+  r(s, :) =
+  \begin{cases}
+    1  \quad &-2.4\leq p\leq 2.4, -12.5\leq \theta \leq 12.5\\
+    0    \quad &\textup{otherwise}
+  \end{cases}
+\end{equation*}
+
+\textbf{Termination:}
+
+The episode terminates after 200 steps or once the agent receives 0 reward for the first time.
+
+\textbf{Problem analysis:}
+
+This episodic RL problem can be solved with standard model-based on-policy methods such as MC methods and SARSA.
+A deep RL method is able to formulate the Q function with neural networks. In this way, we are able to evaluate and
+improve the policy by finding the optimal parameters. Thus some standard optimization method such as stochastic gradient
+decent method can be applied.
+
+\subsection{Pseudo-code for DQN}
+
+\begin{algorithm}[h]
+  \caption{DQN}
+  \begin{algorithmic}[1]
+    \State Initialize $\phi,\phi'$
+    \For{each episode $k=1,2,\cdots$}
+      \For{$t=0, \cdots, N$}
+        \State Get the $\epsilon$-greedy action $a_t=\pi(s_t)$ according to $Q_{\phi}(s_t,a_t)$
+        \State Obtain observations $(s_t,a_t,r_t,s_{t+1})$, and add it to the memeory set
+        \For{$i=1,\cdots,|B|$}
+          \State Sample $(s_t,a_t,r_t,s_{t+1})$ from memory
+          \State Calculate $Q_{\phi}(s_t,a_t)$ and $Q_{\phi'}(s_{t+1},a_t)$ according to the network
+          \State Calculate the target value:
+          $$y_t=r_t+\lambda\max_{b}Q_{\phi'}(s_{t+1},a_t)$$
+          \State Update $\phi$:
+          $$\phi\leftarrow\phi-\alpha(Q_{\phi}(s_t,a_t)-y_i)\nabla_{\phi}Q_{\phi}(s_t,a_t)$$
+        \EndFor
+      \EndFor
+      \State Update $\phi'$: $\phi'\leftarrow\phi$
+      \If {\textit{terminated conditions satisfied}}
+        \State \textbf{break}
+      \EndIf
+    \EndFor
+  \end{algorithmic}
+\end{algorithm}
+
+\subsection{Impact of nodes and hidden layers}
+
+\subsection{Impact of the discount factor, learning rate, and memory size}
+
+\subsection{Impact of the update frequency of target network}
+
+\subsection{Solve the problem}
 
 
 \end{document}
