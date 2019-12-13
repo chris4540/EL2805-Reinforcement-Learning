@@ -8,7 +8,8 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 from keras.models import Sequential
 
-EPISODES = 1000 #Maximum number of episodes
+# EPISODES = 1000 # Maximum number of episodes
+EPISODES = 500 # Maximum number of episodes
 
 #DQN Agent for the Cartpole
 #Q function approximation with NN, experience replay, and target network
@@ -202,7 +203,7 @@ if __name__ == "__main__":
         score = 0
         state = env.reset() #Initialize/reset the environment
         state = np.reshape(state, [1, state_size]) #Reshape state so that to a 1 by state_size two-dimensional array ie. [x_1,x_2] to [[x_1,x_2]]
-        #Compute Q values for plotting
+        # Compute Q values for plotting
         tmp = agent.model.predict(test_states)
         max_q[e][:] = np.max(tmp, axis=1)
         max_q_mean[e] = np.mean(max_q[e][:])
