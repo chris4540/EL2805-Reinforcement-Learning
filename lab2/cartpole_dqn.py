@@ -10,7 +10,7 @@ from keras.models import Sequential
 from utils.exp_folder import make_exp_folder
 from utils.hparams import HyperParams
 
-EPISODES = 10000 # Maximum number of episodes
+EPISODES = 1000 # Maximum number of episodes
 
 
 #DQN Agent for the Cartpole
@@ -34,7 +34,7 @@ class DQNAgent:
         hparams.save_to_txt(self.exp_folder / "hparams.txt")
         hparams.save_to_json(self.exp_folder / "hparams.json")
 
-        #Set hyper parameters for the DQN. Do not adjust those labeled as Fixed.
+        # Set hyper parameters for the DQN. Do not adjust those labeled as Fixed.
         self.discount_factor = hparams.discount_factor
         self.learning_rate = hparams.learning_rate
         self.target_update_frequency = hparams.target_update_frequency
@@ -183,7 +183,7 @@ class DQNAgent:
 
 if __name__ == "__main__":
     # change the exp folder here
-    exp_folder = "exp1"
+    exp_folder = "experiments/nn_size"
 
     #For CartPole-v0, maximum episode length is 200
     env = gym.make('CartPole-v0') #Generate Cartpole-v0 environment object from the gym library
