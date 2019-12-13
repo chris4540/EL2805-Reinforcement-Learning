@@ -44,7 +44,7 @@ class DQNAgent:
         self.batch_size = 32 # Fixed
         self.train_start = 1000 # Fixed
 
-        #Number of test states for Q value plots
+        # Number of test states for Q value plots
         self.test_state_no = 10000
 
         #Create memory buffer using deque
@@ -71,8 +71,10 @@ class DQNAgent:
         """
         # Edit the Neural Network model here
         model = Sequential()
-        model.add(Dense(16, input_dim=self.state_size, activation='relu',
+        model.add(Dense(8, input_dim=self.state_size, activation='relu',
                         kernel_initializer='he_uniform'))
+        model.add(Dense(16, activation='relu', kernel_initializer='he_uniform'))
+        model.add(Dense(8, activation='relu', kernel_initializer='he_uniform'))
         model.add(Dense(self.action_size, activation='linear',
                         kernel_initializer='he_uniform'))
         model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
@@ -191,10 +193,13 @@ if __name__ == "__main__":
     state_size = env.observation_space.shape[0]
     action_size = env.action_space.n
 
+    print("state_size: ", state_size)
+    print("action_size: ", action_size)
+
     # Create agent, see the DQNAgent __init__ method for details
     agent = DQNAgent(state_size, action_size, exp_folder=exp_folder)
 
-    #Collect test states for plotting Q values using uniform random policy
+    # Collect test states for plotting Q values using uniform random policy
     test_states = np.zeros((agent.test_state_no, state_size))
     max_q = np.zeros((EPISODES, agent.test_state_no))
     max_q_mean = np.zeros((EPISODES,1))
@@ -218,7 +223,9 @@ if __name__ == "__main__":
         done = False
         score = 0
         state = env.reset() #Initialize/reset the environment
-        state = np.reshape(state, [1, state_size]) #Reshape state so that to a 1 by state_size two-dimensional array ie. [x_1,x_2] to [[x_1,x_2]]
+        #Reshape state so that to a 1 by state_size two-dimensional array
+        # i.e. [x_1,x_2] to [[x_1,x_2]]
+        state = np.reshape(state, [1, state_size])
         # Compute Q values for plotting
         tmp = agent.model.predict(test_states)
         max_q[e][:] = np.max(tmp, axis=1)
