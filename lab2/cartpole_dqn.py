@@ -116,7 +116,7 @@ class DQNAgent:
         done = list()
 
         # for i in range(self.batch_size):
-        for i in range(mini_batch.shape[0]):
+        for i in range(batch_size):
             # Allocate s(i) to the network input array from iteration i in the batch
             update_input[i] = mini_batch[i][0]
             # Store a(i)
@@ -135,18 +135,18 @@ class DQNAgent:
 
         # -----------------------------------------------------------
         # Q Learning: get maximum Q value at s' from target network
+        # Read Part7.pdf, page 29
         # -----------------------------------------------------------
-###############################################################################
-###############################################################################
-        #Insert your Q-learning code here
-        #Tip 1: Observe that the Q-values are stored in the variable target
-        #Tip 2: What is the Q-value of the action taken at the last state of the episode?
-        for i in range(self.batch_size): #For every batch
-            target[i][action[i]] = random.randint(0,1)
-###############################################################################
-###############################################################################
+        # for i in range(self.batch_size): #For every batch
+        for i in range(batch_size):
+            if done[i]:
+                # if this is the episode ends
+                target[i][action[i]] = reward[i]
+            else:
+                # Consider also the future reward (Q-value predicted by outer loop)
+                target[i][action[i]] = reward[i] + self.discount_factor * np.max(target_val[i])
 
-        #Train the inner loop network
+        # Train the inner loop network
         self.model.fit(update_input, target, batch_size=self.batch_size,
                        epochs=1, verbose=0)
         return
