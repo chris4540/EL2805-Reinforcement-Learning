@@ -8,13 +8,11 @@ class HyperParams:
     A class for placing hyper parameters for training.
     Expected to display during training and save down to experiement / train folder
     """
-    batch_size = 256
-    lr = 5e-2
-    epochs = 5
-    eta_min = 1e-5
-    weight_decay = 1e-5
-    margin = None
-    lambda_ = None
+    discount_factor = 0.95
+    learning_rate = 0.005
+    memory_size = 1000
+    target_update_frequency = 1
+
 
     def __init__(self, **kwargs):
         for k in kwargs.keys():

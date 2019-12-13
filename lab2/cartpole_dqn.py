@@ -8,16 +8,16 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 from keras.models import Sequential
 from utils.exp_folder import make_exp_folder
+from utils.hparams import HyperParams
 
-EPISODES = 200 # Maximum number of episodes
-# EPISODES = 500 # Maximum number of episodes
+EPISODES = 10000 # Maximum number of episodes
 
 
 #DQN Agent for the Cartpole
 #Q function approximation with NN, experience replay, and target network
 class DQNAgent:
     #Constructor for the agent (invoked when DQN is first called in main)
-    def __init__(self, state_size, action_size, exp_folder):
+    def __init__(self, state_size, action_size, exp_folder, **kwargs):
         # If True, stop if you satisfy solution confition
         self.check_solve = False
         # If you want to see Cartpole learning, then change to True
@@ -29,12 +29,17 @@ class DQNAgent:
         self.exp_folder = make_exp_folder(exp_folder)
 
        # Modify here
+        hparams = HyperParams(**kwargs)
+        hparams.display()
+        hparams.save_to_txt(self.exp_folder / "hparams.txt")
+        hparams.save_to_json(self.exp_folder / "hparams.json")
 
         #Set hyper parameters for the DQN. Do not adjust those labeled as Fixed.
-        self.discount_factor = 0.95
-        self.learning_rate = 0.005
-        self.target_update_frequency = 1
-        self.memory_size = 1000
+        self.discount_factor = hparams.discount_factor
+        self.learning_rate = hparams.learning_rate
+        self.target_update_frequency = hparams.target_update_frequency
+        self.memory_size = hparams.memory_size
+        # -----------------------------
         self.epsilon = 0.02 # Fixed
         self.batch_size = 32 # Fixed
         self.train_start = 1000 # Fixed
@@ -177,6 +182,7 @@ class DQNAgent:
 ###############################################################################
 
 if __name__ == "__main__":
+    # change the exp folder here
     exp_folder = "exp1"
 
     #For CartPole-v0, maximum episode length is 200
@@ -185,7 +191,7 @@ if __name__ == "__main__":
     state_size = env.observation_space.shape[0]
     action_size = env.action_space.n
 
-    #Create agent, see the DQNAgent __init__ method for details
+    # Create agent, see the DQNAgent __init__ method for details
     agent = DQNAgent(state_size, action_size, exp_folder=exp_folder)
 
     #Collect test states for plotting Q values using uniform random policy
