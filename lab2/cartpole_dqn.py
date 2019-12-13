@@ -7,21 +7,26 @@ from collections import deque
 from keras.layers import Dense
 from keras.optimizers import Adam
 from keras.models import Sequential
+from utils.exp_folder import make_exp_folder
 
-# EPISODES = 1000 # Maximum number of episodes
-EPISODES = 500 # Maximum number of episodes
+EPISODES = 200 # Maximum number of episodes
+# EPISODES = 500 # Maximum number of episodes
+
 
 #DQN Agent for the Cartpole
 #Q function approximation with NN, experience replay, and target network
 class DQNAgent:
     #Constructor for the agent (invoked when DQN is first called in main)
-    def __init__(self, state_size, action_size):
-        self.check_solve = False	#If True, stop if you satisfy solution confition
-        self.render = False        #If you want to see Cartpole learning, then change to True
+    def __init__(self, state_size, action_size, exp_folder):
+        # If True, stop if you satisfy solution confition
+        self.check_solve = False
+        # If you want to see Cartpole learning, then change to True
+        self.render = False
 
-        #Get size of state and action
+        # Get size of state and action
         self.state_size = state_size
         self.action_size = action_size
+        self.exp_folder = make_exp_folder(exp_folder)
 
        # Modify here
 
@@ -44,6 +49,10 @@ class DQNAgent:
         self.model = self.build_model()
         self.target_model = self.build_model()
 
+        # save down the model summary
+        with open(self.exp_folder / 'model_summary.txt','w') as fh:
+            self.model.summary(print_fn=lambda x: fh.write(x + '\n'))
+
         #Initialize target network
         self.update_target_model()
 
@@ -61,7 +70,6 @@ class DQNAgent:
                         kernel_initializer='he_uniform'))
         model.add(Dense(self.action_size, activation='linear',
                         kernel_initializer='he_uniform'))
-        model.summary()
         model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
         return model
 
@@ -157,18 +165,20 @@ class DQNAgent:
         pylab.plot(episodes, max_q_mean, 'b')
         pylab.xlabel("Episodes")
         pylab.ylabel("Average Q Value")
-        pylab.savefig("qvalues.png")
+        pylab.savefig(self.exp_folder / "qvalues.png")
 
         pylab.figure(1)
         pylab.plot(episodes, scores, 'b')
         pylab.xlabel("Episodes")
         pylab.ylabel("Score")
-        pylab.savefig("scores.png")
+        pylab.savefig(self.exp_folder / "scores.png")
 
 ###############################################################################
 ###############################################################################
 
 if __name__ == "__main__":
+    exp_folder = "exp1"
+
     #For CartPole-v0, maximum episode length is 200
     env = gym.make('CartPole-v0') #Generate Cartpole-v0 environment object from the gym library
     #Get state and action sizes from the environment
@@ -176,7 +186,7 @@ if __name__ == "__main__":
     action_size = env.action_space.n
 
     #Create agent, see the DQNAgent __init__ method for details
-    agent = DQNAgent(state_size, action_size)
+    agent = DQNAgent(state_size, action_size, exp_folder=exp_folder)
 
     #Collect test states for plotting Q values using uniform random policy
     test_states = np.zeros((agent.test_state_no, state_size))
