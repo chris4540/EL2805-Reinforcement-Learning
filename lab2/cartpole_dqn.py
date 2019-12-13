@@ -27,11 +27,11 @@ class DQNAgent:
         #Set hyper parameters for the DQN. Do not adjust those labeled as Fixed.
         self.discount_factor = 0.95
         self.learning_rate = 0.005
-        self.epsilon = 0.02 #Fixed
-        self.batch_size = 32 #Fixed
-        self.memory_size = 1000
-        self.train_start = 1000 #Fixed
         self.target_update_frequency = 1
+        self.memory_size = 1000
+        self.epsilon = 0.02 # Fixed
+        self.batch_size = 32 # Fixed
+        self.train_start = 1000 # Fixed
 
         #Number of test states for Q value plots
         self.test_state_no = 10000
@@ -68,14 +68,22 @@ class DQNAgent:
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
 
-    #Get action from model using epsilon-greedy policy
     def get_action(self, state):
-###############################################################################
-###############################################################################
-        #Insert your e-greedy policy code here
-        #Tip 1: Use the random package to generate a random action.
-        #Tip 2: Use keras.model.predict() to compute Q-values from the state.
-        action = random.randrange(self.action_size)
+        """ Get action from model using epsilon-greedy policy
+
+        Args:
+            state ([type]): [description]
+
+        Returns:
+            [type]: An action
+        """
+        if np.random.binomial(1, self.epsilon) == 1:
+            # random policy
+            action = random.randrange(self.action_size)
+        else:
+            # e-greedy policy
+            q_values = self.model.predict(state)
+            action = q_values.argmax()
         return action
 ###############################################################################
 ###############################################################################
