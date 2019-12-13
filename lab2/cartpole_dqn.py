@@ -46,13 +46,15 @@ class DQNAgent:
         #Initialize target network
         self.update_target_model()
 
-    #Approximate Q function using Neural Network
-    #State is the input and the Q Values are the output.
-###############################################################################
-###############################################################################
-        #Edit the Neural Network model here
-        #Tip: Consult https://keras.io/getting-started/sequential-model-guide/
     def build_model(self):
+        """
+        Approximate Q function using Neural Network
+        State is the input and the Q Values are the output.
+
+        See also:
+        https://keras.io/getting-started/sequential-model-guide/
+        """
+        # Edit the Neural Network model here
         model = Sequential()
         model.add(Dense(16, input_dim=self.state_size, activation='relu',
                         kernel_initializer='he_uniform'))
@@ -61,10 +63,8 @@ class DQNAgent:
         model.summary()
         model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
         return model
-###############################################################################
-###############################################################################
 
-    #After some time interval update the target model to be same with model
+    # After some time interval update the target model to be same with model
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
 
@@ -93,26 +93,49 @@ class DQNAgent:
 
     #Sample <s,a,r,s'> from replay memory
     def train_model(self):
-        if len(self.memory) < self.train_start: #Do not train if not enough memory
+        # Do not train if not enough memory
+        if len(self.memory) < self.train_start:
             return
-        batch_size = min(self.batch_size, len(self.memory)) #Train on at most as many samples as you have in memory
-        mini_batch = random.sample(self.memory, batch_size) #Uniformly sample the memory buffer
-        #Preallocate network and target network input matrices.
-        update_input = np.zeros((batch_size, self.state_size)) #batch_size by state_size two-dimensional array (not matrix!)
-        update_target = np.zeros((batch_size, self.state_size)) #Same as above, but used for the target network
-        action, reward, done = [], [], [] #Empty arrays that will grow dynamically
 
-        for i in range(self.batch_size):
-            update_input[i] = mini_batch[i][0] #Allocate s(i) to the network input array from iteration i in the batch
-            action.append(mini_batch[i][1]) #Store a(i)
-            reward.append(mini_batch[i][2]) #Store r(i)
-            update_target[i] = mini_batch[i][3] #Allocate s'(i) for the target network array from iteration i in the batch
-            done.append(mini_batch[i][4])  #Store done(i)
+        # Train on at most as many samples as you have in memory
+        batch_size = min(self.batch_size, len(self.memory))
+        # Uniformly sample the memory buffer
+        mini_batch = random.sample(self.memory, batch_size)
+        # -----------------------------------------------------
+        # Preallocate network and target network input matrices.
+        # -----------------------------------------------------
+        # batch_size by state_size two-dimensional array (not matrix!)
+        update_input = np.zeros((batch_size, self.state_size))
+        # Same as above, but used for the target network
+        update_target = np.zeros((batch_size, self.state_size))
 
-        target = self.model.predict(update_input) #Generate target values for training the inner loop network using the network model
-        target_val = self.target_model.predict(update_target) #Generate the target values for training the outer loop target network
+        # Empty arrays that will grow dynamically
+        # action, reward, done = [], [], []
+        action = list()
+        reward = list()
+        done = list()
 
-        #Q Learning: get maximum Q value at s' from target network
+        # for i in range(self.batch_size):
+        for i in range(mini_batch.shape[0]):
+            # Allocate s(i) to the network input array from iteration i in the batch
+            update_input[i] = mini_batch[i][0]
+            # Store a(i)
+            action.append(mini_batch[i][1])
+            # Store r(i)
+            reward.append(mini_batch[i][2])
+            # Allocate s'(i) for the target network array from iteration i in the batch
+            update_target[i] = mini_batch[i][3]
+            # Store done(i)
+            done.append(mini_batch[i][4])
+
+        # Generate target values for training the inner loop network using the network model
+        target = self.model.predict(update_input)
+        # Generate the target values for training the outer loop target network
+        target_val = self.target_model.predict(update_target)
+
+        # -----------------------------------------------------------
+        # Q Learning: get maximum Q value at s' from target network
+        # -----------------------------------------------------------
 ###############################################################################
 ###############################################################################
         #Insert your Q-learning code here
