@@ -210,11 +210,11 @@ if __name__ == "__main__":
     hparams = dict()
     if args.men_size:
         hparams['memory_size'] = args.men_size
-    elif atgs.discount:
+    elif args.discount:
         hparams['discount_factor'] = args.discount
-    elif atgs.update_fq:
+    elif args.update_fq:
         hparams['target_update_frequency'] = args.update_fq
-    elif atgs.lr:
+    elif args.lr:
         hparams['learning_rate'] = args.lr
 
     # -------------------------------------------------------------------------
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     print("action_size: ", action_size)
 
     # Create agent, see the DQNAgent __init__ method for details
-    agent = DQNAgent(state_size, action_size, exp_folder=exp_folder, **sol_hp)
+    agent = DQNAgent(state_size, action_size, exp_folder=exp_folder, **hparams)
 
     # Collect test states for plotting Q values using uniform random policy
     test_states = np.zeros((agent.test_state_no, state_size))
