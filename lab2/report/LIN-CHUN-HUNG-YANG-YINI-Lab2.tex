@@ -267,7 +267,9 @@ the discount factor we are able to include more of the future reward which will 
 higher total reward than only the current reward. However, when the discount factor is extremely close
 to 1, it might not converge as the future reward is almost as important as the current reward. As shown
 in Figure \ref{discount factor} (d), the total rewards will keep accumulating with the steps and the Q values
-will also keep increasing without converging.
+will also keep increasing without converging. As we consider the score as the performance indicator, we
+would like to use 0.995 as our discount factor in the final model as it gives more stable performance when it comes to the 
+score.
 
 \textbf{Learning rate}
 
