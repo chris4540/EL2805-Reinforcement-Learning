@@ -75,15 +75,21 @@ The episode terminates after 200 steps or once the agent receives 0 reward for t
 
 \textbf{Problem analysis:}
 
-This episodic RL problem can be solved with standard model-based on-policy methods such as MC methods and SARSA.
-A deep RL method is able to formulate the Q function with neural networks. In this way, we are able to evaluate and
-improve the policy by finding the optimal parameters. Thus some standard optimization method such as stochastic gradient
-decent method can be applied.
+We cannot use the standard reinforcement learning method to solve this problem.
+It is because the state variables are continuous instead of discrete.
+Therefore the Q-learning and SARSA for constructing a tabular state-action value function (i.e. Q-function)
+are not suitable for this case.
+
+Using a neural network to approximate the Q-function is robust and more powerful. 
+As the universal approximation theorem states that any continuous functions on the subset $\mathbb R^n$ 
+can be approximated by a finite number of neurons and certain activation functions.
 
 \subsection{Pseudo-code for DQN}
+The pseudo-code is mentioned in algorithm \ref{algo:DQN}
 
 \begin{algorithm}[!htbp]
   \caption{DQN}
+  \label{algo:DQN}
   \begin{algorithmic}[1]
     \State Initialize $\phi,\phi'$
     \For{each episode $k=1,2,\cdots$}
@@ -415,6 +421,7 @@ Figure \ref{update frequency} (a). However, when the update frequency is too low
 According to the above parameter tuning process, we have chosen the optimal parameter setting as in
 Table \ref{param table}. And the result is visualized in Figure \ref{final}. In this way, we can get
 the maximum average Q values. And after almost 100 episodes, the scores have reached 200.
+Finally, the problem solved after 590 episodes.
 
 \begin{table}[H]
   \centering
