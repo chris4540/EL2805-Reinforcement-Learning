@@ -266,7 +266,7 @@ if __name__ == "__main__":
             if agent.render:
                 env.render() #Show cartpole animation
 
-            #Get action for the current state and go one step in environment
+            # Get action for the current state and go one step in environment
             action = agent.get_action(state)
             next_state, reward, done, info = env.step(action)
             next_state = np.reshape(next_state, [1, state_size]) #Reshape next_state similarly to state
