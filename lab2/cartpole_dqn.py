@@ -3,6 +3,7 @@ import gym
 import pylab
 import random
 import numpy as np
+from pathlib import Path
 from os.path import join
 from collections import deque
 from keras.layers import Dense
@@ -11,6 +12,8 @@ from keras.models import Sequential
 from utils.exp_folder import make_exp_folder
 from utils.hparams import HyperParams
 from utils.csvlogger import CSVLogger
+from argparse import ArgumentParser
+from argparse import ArgumentDefaultsHelpFormatter
 
 EPISODES = 1000 # Maximum number of episodes
 
@@ -21,7 +24,7 @@ class DQNAgent:
     #Constructor for the agent (invoked when DQN is first called in main)
     def __init__(self, state_size, action_size, exp_folder, **kwargs):
         # If True, stop if you satisfy solution confition
-        self.check_solve = True
+        self.check_solve = False
         # If you want to see Cartpole learning, then change to True
         self.render = False
 
@@ -187,19 +190,35 @@ class DQNAgent:
 ###############################################################################
 
 if __name__ == "__main__":
-    # change the exp folder here
-    # exp_folder = "experiments/nn_size"
-    sol_hp = {
-        "discount_factor": 0.995,
-        "learning_rate": 0.005,
-        "memory_size": 20000,
-        "target_update_frequency": 1,
-    }
-    # exp_folder = "experiments/discount_factor_{}".format(str(discount_factor).replace(".", ""))
-    exp_folder = "experiments/final"
+    # parser
+    parser = ArgumentParser(description='Lab 2 catpole dqn',
+                            formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--men_size', type=int)
+    parser.add_argument('--lr', type=float)
+    parser.add_argument('--update_fq', type=int)
+    parser.add_argument('--discount', type=float)
+    parser.add_argument('--folder', default=str(Path("experiments/exp")),
+                        help="The exp folder")
+    args = parser.parse_args()
+
+    exp_folder = args.folder
+
+    # set csv logger
     logger = CSVLogger(join(exp_folder, "history.csv"))
 
-    #For CartPole-v0, maximum episode length is 200
+    # set hyperparams
+    hparams = dict()
+    if args.men_size:
+        hparams['memory_size'] = args.men_size
+    elif atgs.discount:
+        hparams['discount_factor'] = args.discount
+    elif atgs.update_fq:
+        hparams['target_update_frequency'] = args.update_fq
+    elif atgs.lr:
+        hparams['learning_rate'] = args.lr
+
+    # -------------------------------------------------------------------------
+    # For CartPole-v0, maximum episode length is 200
     env = gym.make('CartPole-v0') #Generate Cartpole-v0 environment object from the gym library
     #Get state and action sizes from the environment
     state_size = env.observation_space.shape[0]
