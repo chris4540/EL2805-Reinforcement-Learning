@@ -100,7 +100,13 @@ The pseudo-code is mentioned in algorithm \ref{algo:DQN}
           \State Sample $(s_t,a_t,r_t,s_{t+1})$ from memory
           \State Calculate $Q_{\phi}(s_t,a_t)$ and $Q_{\phi'}(s_{t+1},a_t)$ according to the network
           \State Calculate the target value:
-          $$y_t=r_t+\lambda\max_{b}Q_{\phi'}(s_{t+1},a_t)$$
+            \begin{equation*}
+              y_t =
+              \begin{cases}
+                r_t       \quad  &\textup{if episode stops in $s_{t+1}$} \\
+                r_t + \lambda\max_{b}Q_{\phi'}(s_{t+1}, a_t)    \quad &\textup{otherwise}
+              \end{cases}
+            \end{equation*}
           \State Update $\phi$:
           $$\phi\leftarrow\phi-\alpha(Q_{\phi}(s_t,a_t)-y_i)\nabla_{\phi}Q_{\phi}(s_t,a_t)$$
         \EndFor
