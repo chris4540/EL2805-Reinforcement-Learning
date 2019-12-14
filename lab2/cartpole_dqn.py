@@ -107,11 +107,13 @@ class DQNAgent:
             q_values = self.model.predict(state)
             action = q_values.argmax()
         return action
-###############################################################################
-###############################################################################
-    #Save sample <s,a,r,s'> to the replay memory
+
     def append_sample(self, state, action, reward, next_state, done):
-        self.memory.append((state, action, reward, next_state, done)) #Add sample to the end of the list
+        """
+        Save sample <s,a,r,s'> to the replay memory
+        """
+        # Add sample to the end of the list
+        self.memory.append((state, action, reward, next_state, done)) 
 
     #Sample <s,a,r,s'> from replay memory
     def train_model(self):
@@ -139,18 +141,21 @@ class DQNAgent:
 
         # for i in range(self.batch_size):
         for i in range(batch_size):
-            # Allocate s(i) to the network input array from iteration i in the batch
+            # Allocate s(i) to the network input array from iteration i 
+            # in the batch
             update_input[i] = mini_batch[i][0]
             # Store a(i)
             action.append(mini_batch[i][1])
             # Store r(i)
             reward.append(mini_batch[i][2])
-            # Allocate s'(i) for the target network array from iteration i in the batch
+            # Allocate s'(i) for the target network array from iteration i 
+            # in the batch
             update_target[i] = mini_batch[i][3]
             # Store done(i)
             done.append(mini_batch[i][4])
 
-        # Generate target values for training the inner loop network using the network model
+        # Generate target values for training the inner loop network using 
+        # the network model
         target = self.model.predict(update_input)
         # Generate the target values for training the outer loop target network
         target_val = self.target_model.predict(update_target)
@@ -166,14 +171,19 @@ class DQNAgent:
                 target[i][action[i]] = reward[i]
             else:
                 # Consider also the future reward (Q-value predicted by outer loop)
-                target[i][action[i]] = reward[i] + self.discount_factor * np.max(target_val[i])
+                target[i][action[i]] = (
+                    reward[i] + self.discount_factor * np.max(target_val[i]))
 
         # Train the inner loop network
         self.model.fit(update_input, target, batch_size=self.batch_size,
                        epochs=1, verbose=0)
         return
-    #Plots the score per episode as well as the maximum q value per episode, averaged over precollected states.
+
     def plot_data(self, episodes, scores, max_q_mean):
+        """
+        Plots the score per episode as well as the maximum q value per episode, 
+        averaged over precollected states.
+        """
         pylab.figure(0)
         pylab.plot(episodes, max_q_mean, 'b')
         pylab.xlabel("Episodes")
@@ -219,7 +229,8 @@ if __name__ == "__main__":
 
     # -------------------------------------------------------------------------
     # For CartPole-v0, maximum episode length is 200
-    env = gym.make('CartPole-v0') #Generate Cartpole-v0 environment object from the gym library
+    # Generate Cartpole-v0 environment object from the gym library
+    env = gym.make('CartPole-v0')
     #Get state and action sizes from the environment
     state_size = env.observation_space.shape[0]
     action_size = env.action_space.n
@@ -269,7 +280,8 @@ if __name__ == "__main__":
             # Get action for the current state and go one step in environment
             action = agent.get_action(state)
             next_state, reward, done, info = env.step(action)
-            next_state = np.reshape(next_state, [1, state_size]) #Reshape next_state similarly to state
+            # Reshape next_state similarly to state
+            next_state = np.reshape(next_state, [1, state_size]) 
 
             #Save sample <s, a, r, s'> to the replay memory
             agent.append_sample(state, action, reward, next_state, done)
@@ -286,9 +298,11 @@ if __name__ == "__main__":
                 scores.append(score)
                 episodes.append(e)
 
-                print("episode:", e, "  score:", score," q_value:", max_q_mean[e],"  memory length:",
-                      len(agent.memory))
-                logger.log(episode=e, score=score, q_value=max_q_mean[e][0], men_len=len(agent.memory))
+                print("episode:", e, "  score:", score, 
+                      " q_value:", max_q_mean[e],
+                      "  memory length:", len(agent.memory))
+                logger.log(episode=e, score=score, q_value=max_q_mean[e][0],
+                           men_len=len(agent.memory))
 
                 # if the mean of scores of last 100 episodes is bigger than 195
                 # stop training
