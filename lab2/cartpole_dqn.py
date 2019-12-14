@@ -75,6 +75,7 @@ class DQNAgent:
                         kernel_initializer='he_uniform'))
         model.add(Dense(16, activation='relu', kernel_initializer='he_uniform'))
         model.add(Dense(8, activation='relu', kernel_initializer='he_uniform'))
+        model.add(Dense(4, activation='relu', kernel_initializer='he_uniform'))
         model.add(Dense(self.action_size, activation='linear',
                         kernel_initializer='he_uniform'))
         model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
