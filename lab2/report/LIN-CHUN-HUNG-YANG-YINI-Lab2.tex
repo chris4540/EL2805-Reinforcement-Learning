@@ -119,13 +119,16 @@ The pseudo-code is mentioned in algorithm \ref{algo:DQN}
     \State Initialize $\phi,\phi'$   \Comment{agent.build\_model() and DQNAgent constructor}
     \For{each episode $k=1,2,\cdots$}
       \For{$t=0, \cdots, N$}
-        \State Get the $\epsilon$-greedy action $a_t=\pi(s_t)$ according to $Q_{\phi}(s_t,a_t)$ \Comment{Line 270}
-        \State Obtain observations $(s_t,a_t,r_t,s_{t+1})$    \Comment{Line 271-272}
-        \State Add $(s_t,a_t,r_t,s_{t+1})$ to the memeory set \Comment{Line 275}
+        \State Get the $\epsilon$-greedy action $a_t=\pi(s_t)$ according to $Q_{\phi}(s_t,a_t)$ \Comment{Line 281}
+        \State Obtain observations $(s_t,a_t,r_t,s_{t+1})$    \Comment{Line 282-283}
+        \State Add $(s_t,a_t,r_t,s_{t+1})$ to the memeory set \Comment{Line 287}
         \For{$i=1,\cdots,|B|$}  \Comment{In agent.train\_model}
           \State Sample $(s_t,a_t,r_t,s_{t+1})$ from memory
+          \Comment{Line 127}
           \State Calculate $Q_{\phi}(s_t,a_t)$ and $Q_{\phi'}(s_{t+1},a_t)$ according to the network
+          \Comment{Line 159,161}
           \State Calculate the target value:
+            \Comment{Line 168-175} 
             \begin{equation*}
               y_t =
               \begin{cases}
@@ -134,7 +137,7 @@ The pseudo-code is mentioned in algorithm \ref{algo:DQN}
               \end{cases}
             \end{equation*}
           \State Update $\phi$:
-          $$\phi\leftarrow\phi-\alpha(Q_{\phi}(s_t,a_t)-y_i)\nabla_{\phi}Q_{\phi}(s_t,a_t)$$ \Comment{Line: 172, self.model.fit(...)}
+          $$\phi\leftarrow\phi-\alpha(Q_{\phi}(s_t,a_t)-y_i)\nabla_{\phi}Q_{\phi}(s_t,a_t)$$ \Comment{Line: 178, self.model.fit(...)}
         \EndFor
       \EndFor
       \State Update $\phi'$ every $C$ steps: $\phi'\leftarrow\phi$ \Comment{Line: 283-284}
