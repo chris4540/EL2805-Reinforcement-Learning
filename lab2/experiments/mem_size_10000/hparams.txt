@@ -1,0 +1,7 @@
+--------- Hyper Parameters ---------
+discount_factor                0.95
+learning_rate                  0.005
+memory_size                    10000
+target_update_frequency        1
+--------- Hyper Parameters ---------
+
