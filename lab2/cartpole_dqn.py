@@ -3,12 +3,14 @@ import gym
 import pylab
 import random
 import numpy as np
+from os.path import join
 from collections import deque
 from keras.layers import Dense
 from keras.optimizers import Adam
 from keras.models import Sequential
 from utils.exp_folder import make_exp_folder
 from utils.hparams import HyperParams
+from utils.csvlogger import CSVLogger
 
 EPISODES = 1000 # Maximum number of episodes
 
@@ -19,7 +21,7 @@ class DQNAgent:
     #Constructor for the agent (invoked when DQN is first called in main)
     def __init__(self, state_size, action_size, exp_folder, **kwargs):
         # If True, stop if you satisfy solution confition
-        self.check_solve = False
+        self.check_solve = True
         # If you want to see Cartpole learning, then change to True
         self.render = False
 
@@ -187,8 +189,15 @@ class DQNAgent:
 if __name__ == "__main__":
     # change the exp folder here
     # exp_folder = "experiments/nn_size"
-    discount_factor = 0.9
-    exp_folder = "experiments/discount_factor_{}".format(str(discount_factor).replace(".", ""))
+    sol_hp = {
+        "discount_factor": 0.995,
+        "learning_rate": 0.005,
+        "memory_size": 20000,
+        "target_update_frequency": 1,
+    }
+    # exp_folder = "experiments/discount_factor_{}".format(str(discount_factor).replace(".", ""))
+    exp_folder = "experiments/final"
+    logger = CSVLogger(join(exp_folder, "history.csv"))
 
     #For CartPole-v0, maximum episode length is 200
     env = gym.make('CartPole-v0') #Generate Cartpole-v0 environment object from the gym library
@@ -200,7 +209,7 @@ if __name__ == "__main__":
     print("action_size: ", action_size)
 
     # Create agent, see the DQNAgent __init__ method for details
-    agent = DQNAgent(state_size, action_size, exp_folder=exp_folder, discount_factor=discount_factor)
+    agent = DQNAgent(state_size, action_size, exp_folder=exp_folder, **sol_hp)
 
     # Collect test states for plotting Q values using uniform random policy
     test_states = np.zeros((agent.test_state_no, state_size))
@@ -260,6 +269,7 @@ if __name__ == "__main__":
 
                 print("episode:", e, "  score:", score," q_value:", max_q_mean[e],"  memory length:",
                       len(agent.memory))
+                logger.log(episode=e, score=score, q_value=max_q_mean[e][0], men_len=len(agent.memory))
 
                 # if the mean of scores of last 100 episodes is bigger than 195
                 # stop training
