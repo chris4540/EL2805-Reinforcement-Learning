@@ -17,3 +17,4 @@ python cartpole_dqn.py --update_fq 10 --folder experiments/update_fq_10
 
 # check discount
 python cartpole_dqn.py --discount 0.95 --folder experiments/discount_095
+
