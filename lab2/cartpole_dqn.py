@@ -186,7 +186,9 @@ class DQNAgent:
 
 if __name__ == "__main__":
     # change the exp folder here
-    exp_folder = "experiments/nn_size"
+    # exp_folder = "experiments/nn_size"
+    discount_factor = 0.9
+    exp_folder = "experiments/discount_factor_{}".format(str(discount_factor).replace(".", ""))
 
     #For CartPole-v0, maximum episode length is 200
     env = gym.make('CartPole-v0') #Generate Cartpole-v0 environment object from the gym library
@@ -198,7 +200,7 @@ if __name__ == "__main__":
     print("action_size: ", action_size)
 
     # Create agent, see the DQNAgent __init__ method for details
-    agent = DQNAgent(state_size, action_size, exp_folder=exp_folder)
+    agent = DQNAgent(state_size, action_size, exp_folder=exp_folder, discount_factor=discount_factor)
 
     # Collect test states for plotting Q values using uniform random policy
     test_states = np.zeros((agent.test_state_no, state_size))
