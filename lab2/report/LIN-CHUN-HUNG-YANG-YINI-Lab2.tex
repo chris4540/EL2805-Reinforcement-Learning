@@ -51,8 +51,8 @@ This problem can be formulated as an episodic RL problem.
 \textbf{State space:}
 
 Here we use the observations from openAI as states. The state space $S$ can be described as follows:
-$$ S = \{S_i=(p,v,\theta,\theta_{tip})|p\in[-4.8,4.8],v\in[-\infty,\infty],\theta\in[-24,24],\theta_{tip}\in[-\infty,\infty],i=0,1,\cdots\}$$
-where $p,v$ refer to the position and velocity of the cart respectively, while $\theta,\theta_{tip}$ correspond to the angle and velocity at tip of the pole.
+$$ S = \{S_i=(p,v,\theta,v_{tip})|p\in[-4.8,4.8],v\in[-\infty,\infty],\theta\in[-24,24],v_{tip}\in[-\infty,\infty],i=0,1,\cdots\}$$
+where $p,v$ refer to the position and velocity of the cart respectively, while $\theta,v_{tip}$ correspond to the angle and velocity at tip of the pole.
 
 \textbf{Action space:}
 $$A=\{0,1\}$$
@@ -82,7 +82,7 @@ decent method can be applied.
 
 \subsection{Pseudo-code for DQN}
 
-\begin{algorithm}[htbp]
+\begin{algorithm}[!htbp]
   \caption{DQN}
   \begin{algorithmic}[1]
     \State Initialize $\phi,\phi'$
@@ -99,7 +99,7 @@ decent method can be applied.
           $$\phi\leftarrow\phi-\alpha(Q_{\phi}(s_t,a_t)-y_i)\nabla_{\phi}Q_{\phi}(s_t,a_t)$$
         \EndFor
       \EndFor
-      \State Update $\phi'$: $\phi'\leftarrow\phi$
+      \State Update $\phi'$ every $C$ steps: $\phi'\leftarrow\phi$
       \If {\textit{terminated conditions satisfied}}
         \State \textbf{break}
       \EndIf
@@ -112,7 +112,7 @@ decent method can be applied.
 Five different FNN structures have been tested in this section. The average Q values and scores in the
 training process have been visualized from Figure \ref{1 layer FNN} to Figure \ref{multi layers FNN}.
 
-\begin{figure}[htbp]
+\begin{figure}[!htbp]
   \centering
   \begin{subfigure}{\textwidth}
     \begin{minipage}{0.5\textwidth}
@@ -141,7 +141,7 @@ training process have been visualized from Figure \ref{1 layer FNN} to Figure \r
   \label{1 layer FNN}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[!htbp]
   \centering
   \begin{subfigure}{\textwidth}
     \begin{minipage}{0.5\textwidth}
@@ -193,7 +193,7 @@ complicated network leads to a better fit for the model, which has less bias but
 Here we have tested 4 different discount factors: $0.8,0.9,0.95,0.995$. The results are show in Figure
 \ref{discount factor}.
 
-\begin{figure}[htbp]
+\begin{figure}[!htbp]
   \centering
   \begin{subfigure}{\textwidth}
     \begin{minipage}{0.5\textwidth}
@@ -260,7 +260,7 @@ will also keep increasing without converging.
 In this section, we have made experiments on 3 set of learning rates: $0.001,0.005,0.01$.
 And the results have been drawn in Figure \ref{learning rate}.
 
-\begin{figure}[htbp]
+\begin{figure}[!htbp]
   \centering
   \begin{subfigure}{\textwidth}
     \begin{minipage}{0.5\textwidth}
@@ -311,7 +311,10 @@ the variance of the scores between episodes has also increased with the learning
 
 \textbf{Memory size}
 
-\begin{figure}[htbp]
+In this experiment, we have tested 2 memeory sizes: $5000,10000,20000$. The result is shown in Figure
+\ref{memory size}.
+
+\begin{figure}[!htbp]
   \centering
   \begin{subfigure}{\textwidth}
     \begin{minipage}{0.5\textwidth}
@@ -352,9 +355,16 @@ the variance of the scores between episodes has also increased with the learning
   \label{memory size}
 \end{figure}
 
+It can be seen that the number of episodes for converging decreasing as the memory size increases.
+With a bigger memeory size, there will also be more samples used for training each time. Thus it will needed less
+episodes for convergence. Besides, the convergence process is also more stable.
+
 \subsection{Impact of the update frequency of target network}
 
-\begin{figure}[htbp]
+Here we choose 3 set of update frequencies: $1,5,10$, the result of which has been drawn in Figure
+\ref{update frequency}.
+
+\begin{figure}[!htbp]
   \centering
   \begin{subfigure}{\textwidth}
     \begin{minipage}{0.5\textwidth}
@@ -395,9 +405,34 @@ the variance of the scores between episodes has also increased with the learning
   \label{update frequency}
 \end{figure}
 
+The update frequency will control the frequency to update the parameters of the target network.
+When it is too high, the network might be stuck in a local optimal point for a long time as shown in
+Figure \ref{update frequency} (a). However, when the update frequency is too low as in Figure \ref{update frequency}
+(c), it will take much more time to converge.
+
 \subsection{Solve the problem}
 
-\begin{figure}[htbp]
+According to the above parameter tuning process, we have chosen the optimal parameter setting as in
+Table \ref{param table}. And the result is visualized in Figure \ref{final}. In this way, we can get
+the maximum average Q values. And after almost 100 episodes, the scores have reached 200.
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{cc}
+  \hline\hline
+  Parameter& Value\\
+  \hline\hline
+  discount factor & 0.995\\
+  learning rate & 0.005\\
+  memory size & 20000\\
+  target update frequency & 1\\
+  \hline
+  \end{tabular}
+  \caption{Optimal parameter setting}
+  \label{param table}
+\end{table}
+
+\begin{figure}[H]
   \centering
   \begin{minipage}{0.49\textwidth}
     \centering
