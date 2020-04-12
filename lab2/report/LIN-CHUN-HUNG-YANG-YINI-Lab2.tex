@@ -33,7 +33,7 @@
 
 \lstset
 { %Formatting for code in appendix
-    language=Python,  
+    language=Python,
     commentstyle=\color{codegreen},
     keywordstyle=\color{magenta},
     numberstyle=\tiny\color{codegray},
@@ -105,8 +105,8 @@ It is because the state variables are continuous instead of discrete.
 Therefore the Q-learning and SARSA for constructing a tabular state-action value function (i.e. Q-function)
 are not suitable for this case.
 
-Using a neural network to approximate the Q-function is robust and more powerful. 
-As the universal approximation theorem states that any continuous functions on the subset $\mathbb R^n$ 
+Using a neural network to approximate the Q-function is robust and more powerful.
+As the universal approximation theorem states that any continuous functions on the subset $\mathbb R^n$
 can be approximated by a finite number of neurons and certain activation functions.
 
 \subsection{Pseudo-code for DQN}
@@ -128,7 +128,7 @@ The pseudo-code is mentioned in algorithm \ref{algo:DQN}
           \State Calculate $Q_{\phi}(s_t,a_t)$ and $Q_{\phi'}(s_{t+1},a_t)$ according to the network
           \Comment{Line 159,161}
           \State Calculate the target value:
-            \Comment{Line 168-175} 
+            \Comment{Line 168-175}
             \begin{equation*}
               y_t =
               \begin{cases}
@@ -295,7 +295,7 @@ higher total reward than only the current reward. However, when the discount fac
 to 1, it might not converge as the future reward is almost as important as the current reward. As shown
 in Figure \ref{discount factor} (d), the total rewards will keep accumulating with the steps and the Q values
 will also keep increasing without converging. As we consider the score as the performance indicator, we
-would like to use 0.995 as our discount factor in the final model as it gives more stable performance when it comes to the 
+would like to use 0.995 as our discount factor in the final model as it gives more stable performance when it comes to the
 score.
 
 \textbf{Learning rate}
